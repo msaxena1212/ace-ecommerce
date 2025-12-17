@@ -1,0 +1,593 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  phone         String?
+  role          Role      @default(CUSTOMER)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isArchived    Boolean   @default(false)
+  
+  addresses     Address[]
+  orders        Order[]
+  cart          CartItem[]
+  wishlist      WishlistItem[]
+  
+  // New relations for customized machines
+  machines      CustomerMachine[]
+  supportTickets SupportTicket[]
+}
+
+enum Role {
+  CUSTOMER
+  DEALER
+  ADMIN
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name         String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  pincode      String
+  isDefault    Boolean  @default(false)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Product Catalog
+model Product {
+  id             String   @id @default(cuid())
+  partNumber     String   @unique
+  name           String
+  description    String   @db.Text
+  category       String
+  price          Float
+  images         String[] // Array of image URLs
+  specifications Json
+  isActive       Boolean  @default(true)
+  
+  // New fields for customized parts
+  isCustomPart   Boolean  @default(false) // Is this a custom/specialized part?
+  customizationRequired String[] // Customization IDs this part requires
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  wishlistItems  WishlistItem[]
+  
+  // New relations for machine compatibility
+  compatibility  PartCompatibility[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, productId])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, productId])
+}
+
+// Orders
+model Order {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  
+  status            OrderStatus   @default(PENDING)
+  totalAmount       Float
+  paymentMethod     PaymentMethod
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentId         String?
+  
+  deliveryAddress   Json // Snapshot of address at order time
+  
+  deliveryPartner   DeliveryPartner?
+  trackingId        String?
+  estimatedDelivery DateTime?
+  actualDelivery    DateTime?
+  
+  notes             String?       @db.Text
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  items             OrderItem[]
+  routings          OrderRouting[]
+  manifests         Manifest[]
+  returns           Return[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAYMENT_PENDING
+  PAYMENT_FAILED
+  ROUTING_L1
+  ROUTING_L2
+  ROUTING_L3
+  ROUTING_WAREHOUSE
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentMethod {
+  ONLINE
+  COD
+  CREDIT
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+  PARTIAL_REFUND
+}
+
+enum DeliveryPartner {
+  PORTER
+  DELHIVERY
+}
+
+model OrderItem {
+  id          String          @id @default(cuid())
+  orderId     String
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product         @relation(fields: [productId], references: [id])
+  
+  quantity    Int
+  price       Float // Price at order time
+  
+  status      OrderItemStatus @default(PENDING)
+  fulfilledBy String? // Dealer/Warehouse ID
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum OrderItemStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  FULFILLED
+}
+
+// Dealer Management
+model Dealer {
+  id              String      @id @default(cuid())
+  name            String
+  email           String      @unique
+  password        String
+  phone           String
+  level           DealerLevel
+  
+  address         String
+  city            String
+  state           String
+  pincode         String
+  
+  servicePincodes String[] // Pincodes this dealer serves
+  
+  isActive        Boolean     @default(true)
+  responseSLA     Int         @default(120) // Minutes
+  
+  performanceScore Float      @default(100.0)
+  totalOrders      Int        @default(0)
+  approvedOrders   Int        @default(0)
+  rejectedOrders   Int        @default(0)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  routings        OrderRouting[]
+  manifests       Manifest[]
+}
+
+enum DealerLevel {
+  L1
+  L2
+  L3
+  WAREHOUSE
+}
+
+model OrderRouting {
+  id          String        @id @default(cuid())
+  orderId     String
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dealerId    String
+  dealer      Dealer        @relation(fields: [dealerId], references: [id])
+  
+  level       DealerLevel
+  status      RoutingStatus @default(PENDING)
+  
+  routedAt    DateTime      @default(now())
+  respondedAt DateTime?
+  response    String?       @db.Text // Approval/rejection notes
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([orderId, level])
+}
+
+enum RoutingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+// Manifest & Delivery
+model Manifest {
+  id                String         @id @default(cuid())
+  manifestNumber    String         @unique
+  orderId           String
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dealerId          String
+  dealer            Dealer         @relation(fields: [dealerId], references: [id])
+  
+  pickupAddress     Json
+  deliveryAddress   Json
+  items             Json // Item details
+  
+  deliveryPartner   DeliveryPartner
+  trackingId        String?
+  
+  status            ManifestStatus @default(CREATED)
+  
+  scheduledPickup   DateTime?
+  actualPickup      DateTime?
+  estimatedDelivery DateTime?
+  actualDelivery    DateTime?
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+enum ManifestStatus {
+  CREATED
+  PICKUP_SCHEDULED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+}
+
+// Returns
+model Return {
+  id           String       @id @default(cuid())
+  orderId      String
+  order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  reason       ReturnReason
+  description  String       @db.Text
+  photos       String[] // Photo URLs
+  
+  status       ReturnStatus @default(PENDING)
+  
+  approvedBy   String?
+  approvedAt   DateTime?
+  
+  refundAmount Float?
+  refundStatus RefundStatus @default(PENDING)
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+enum ReturnReason {
+  DEFECTIVE
+  WRONG_ITEM
+  NOT_AS_DESCRIBED
+  CHANGED_MIND
+  OTHER
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PICKED_UP
+  RECEIVED
+  COMPLETED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// Machine & Customization Management
+model Machine {
+  id                String              @id @default(cuid())
+  machineNumber     String              @unique // e.g., "ACE-FX14-2024"
+  name              String              // e.g., "FX 14 Mobile Crane"
+  category          String              // e.g., "Mobile Cranes"
+  model             String              // e.g., "FX 14"
+  manufacturer      String              @default("ACE")
+  
+  description       String              @db.Text
+  specifications    Json                // Technical specs
+  images            String[]            // Machine images
+  
+  isCustomizable    Boolean             @default(false)
+  isActive          Boolean             @default(true)
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  customerMachines  CustomerMachine[]
+  compatibleParts   PartCompatibility[]
+  customizations    MachineCustomization[]
+}
+
+model CustomerMachine {
+  id                    String                @id @default(cuid())
+  userId                String
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  machineId             String
+  machine               Machine               @relation(fields: [machineId], references: [id])
+  
+  serialNumber          String?               // Customer's machine serial number
+  purchaseDate          DateTime?
+  
+  hasCustomization      Boolean               @default(false)
+  customizationDetails  Json?                 // Specific customizations for this machine
+  
+  nickname              String?               // Customer's nickname for the machine
+  notes                 String?               @db.Text
+  
+  isActive              Boolean               @default(true)
+  
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  
+  customizations        CustomerMachineCustomization[]
+  supportTickets        SupportTicket[]
+  
+  @@unique([userId, machineId, serialNumber])
+  @@index([userId])
+}
+
+model MachineCustomization {
+  id                String   @id @default(cuid())
+  machineId         String
+  machine           Machine  @relation(fields: [machineId], references: [id])
+  
+  name              String   // e.g., "Extended Boom"
+  description       String   @db.Text
+  customizationType String   // e.g., "Structural", "Hydraulic", "Electrical"
+  
+  affectedParts     Json     // Parts that are different due to this customization
+  additionalParts   Json     // Additional parts needed for this customization
+  
+  isActive          Boolean  @default(true)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  customerMachines  CustomerMachineCustomization[]
+}
+
+model CustomerMachineCustomization {
+  id                      String               @id @default(cuid())
+  customerMachineId       String
+  customerMachine         CustomerMachine      @relation(fields: [customerMachineId], references: [id], onDelete: Cascade)
+  customizationId         String
+  customization           MachineCustomization @relation(fields: [customizationId], references: [id])
+  
+  installedDate           DateTime?
+  notes                   String?              @db.Text
+  
+  createdAt               DateTime             @default(now())
+  
+  @@unique([customerMachineId, customizationId])
+}
+
+model PartCompatibility {
+  id                String   @id @default(cuid())
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  machineId         String
+  machine           Machine  @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  
+  isStandardPart    Boolean  @default(true)  // Standard part for this machine
+  isCustomPart      Boolean  @default(false) // Part for customized machines
+  
+  customizationIds  String[] // IDs of customizations this part is compatible with
+  
+  compatibilityNotes String? @db.Text
+  installationGuide  String? @db.Text
+  
+  priority          Int      @default(0) // Higher priority = more commonly needed
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([productId, machineId])
+  @@index([machineId])
+  @@index([productId])
+}
+
+// Customer Support Workflow
+model SupportTicket {
+  id                  String              @id @default(cuid())
+  ticketNumber        String              @unique
+  userId              String
+  user                User                @relation(fields: [userId], references: [id])
+  customerMachineId   String?
+  customerMachine     CustomerMachine?    @relation(fields: [customerMachineId], references: [id])
+  
+  type                SupportTicketType   @default(PART_INQUIRY)
+  status              SupportTicketStatus @default(OPEN)
+  priority            SupportPriority     @default(MEDIUM)
+  
+  subject             String
+  description         String              @db.Text
+  
+  assignedTo          String?             // Support agent ID
+  
+  whatsappNumber      String?
+  whatsappChatId      String?
+  
+  confirmedParts      Json?               // Parts confirmed by support team
+  sharedCartLink      String?             // Link to add parts to cart
+  
+  resolution          String?             @db.Text
+  resolvedAt          DateTime?
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  messages            SupportMessage[]
+  
+  @@index([userId])
+  @@index([status])
+}
+
+enum SupportTicketType {
+  PART_INQUIRY
+  CUSTOMIZATION_QUERY
+  TECHNICAL_SUPPORT
+  ORDER_ISSUE
+  GENERAL
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  PARTS_CONFIRMED
+  RESOLVED
+  CLOSED
+}
+
+enum SupportPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model SupportMessage {
+  id              String        @id @default(cuid())
+  ticketId        String
+  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  senderId        String        // User ID or Support Agent ID
+  senderType      String        // "CUSTOMER" or "SUPPORT"
+  
+  message         String        @db.Text
+  attachments     String[]      // URLs to attachments
+  
+  isWhatsApp      Boolean       @default(false)
+  whatsappMsgId   String?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([ticketId])
+}
+
+// Smart Part Suggestions
+model PartSuggestion {
+  id                String   @id @default(cuid())
+  userId            String
+  productId         String
+  machineId         String?
+  
+  suggestionType    SuggestionType
+  reason            String   // Why this part is suggested
+  
+  relevanceScore    Float    @default(0.0) // 0-100
+  
+  isViewed          Boolean  @default(false)
+  isClicked         Boolean  @default(false)
+  isPurchased       Boolean  @default(false)
+  
+  createdAt         DateTime @default(now())
+  
+  @@index([userId])
+  @@index([productId])
+}
+
+enum SuggestionType {
+  COMPATIBLE_PART           // Compatible with customer's machine
+  FREQUENTLY_BOUGHT         // Frequently bought together
+  CUSTOMIZATION_REQUIRED    // Required for customization
+  MAINTENANCE_DUE           // Based on usage/time
+  SIMILAR_MACHINE_USERS     // What similar machine owners buy
+  SEASONAL                  // Seasonal recommendations
+}
+
+// Comprehensive Repository
+model MachineRepository {
+  id                String   @id @default(cuid())
+  
+  // Aggregated data for analytics
+  totalMachines     Int      @default(0)
+  totalCustomers    Int      @default(0)
+  totalParts        Int      @default(0)
+  totalCustomizations Int    @default(0)
+  
+  lastSyncedAt      DateTime @default(now())
+  
+  // Metadata
+  metadata          Json
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+

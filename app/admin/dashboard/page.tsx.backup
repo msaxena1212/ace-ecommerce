@@ -1,0 +1,635 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import {
+    Users, Package, TrendingUp, Settings, LogOut, ShoppingBag, Wrench, HeadphonesIcon,
+    Plus, Edit, Trash2, CheckCircle, XCircle, Clock, AlertCircle, BarChart3, Box
+} from 'lucide-react'
+import { mockDealers, mockOrders, mockProducts, mockMachines, mockSupportTickets } from '@/lib/mockData'
+
+export default function AdminDashboardPage() {
+    const [activeTab, setActiveTab] = useState('overview')
+    const [showAddDealer, setShowAddDealer] = useState(false)
+    const [showAddProduct, setShowAddProduct] = useState(false)
+
+    // Calculate order statistics
+    const orderStats = {
+        total: mockOrders.length,
+        approved: mockOrders.filter(o => o.status === 'CONFIRMED' || o.status === 'DELIVERED').length,
+        partialApproval: mockOrders.filter(o => o.items.some((item: any) => item.status === 'PARTIAL')).length,
+        rejected: mockOrders.filter(o => o.status === 'CANCELLED').length,
+        pending: mockOrders.filter(o => o.status.includes('ROUTING')).length,
+    }
+
+    const totalRevenue = mockOrders.reduce((sum, order) => sum + order.totalAmount, 0)
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <header className="bg-black text-white shadow-lg sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        <div className="flex items-center space-x-3">
+                            <div className="text-3xl font-bold text-primary-500">ACE</div>
+                            <div className="text-sm text-gray-300">Admin Portal</div>
+                        </div>
+                        <nav className="flex items-center space-x-6">
+                            <div className="text-sm">
+                                <span className="text-gray-400">Admin:</span>
+                                <span className="font-semibold ml-2">Super Admin</span>
+                            </div>
+                            <Link href="/" className="flex items-center space-x-2 text-gray-300 hover:text-primary-500 transition-colors">
+                                <LogOut className="h-5 w-5" />
+                                <span>Logout</span>
+                            </Link>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    {/* Sidebar */}
+                    <aside className="lg:col-span-1">
+                        <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
+                            <nav className="space-y-2">
+                                {[
+                                    { id: 'overview', icon: TrendingUp, label: 'Overview' },
+                                    { id: 'orders', icon: ShoppingBag, label: 'Orders' },
+                                    { id: 'dealers', icon: Users, label: 'Dealers' },
+                                    { id: 'products', icon: Package, label: 'Products' },
+                                    { id: 'machines', icon: Wrench, label: 'Machines' },
+                                    { id: 'support', icon: HeadphonesIcon, label: 'Support' },
+                                    { id: 'settings', icon: Settings, label: 'Settings' },
+                                ].map(({ id, icon: Icon, label }) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => setActiveTab(id)}
+                                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${activeTab === id
+                                            ? 'bg-primary-500 text-black font-semibold shadow-md'
+                                            : 'hover:bg-gray-100 text-gray-700'
+                                            }`}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                        <span>{label}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="lg:col-span-3">
+                        {/* Overview Tab */}
+                        {activeTab === 'overview' && (
+                            <div className="space-y-6">
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-primary-500">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-gray-600 text-sm font-medium">Total Orders</h3>
+                                            <ShoppingBag className="h-8 w-8 text-primary-500" />
+                                        </div>
+                                        <div className="text-3xl font-bold text-gray-900">{orderStats.total}</div>
+                                        <div className="text-sm text-green-600 mt-1">+12% from last month</div>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-gray-600 text-sm font-medium">Revenue</h3>
+                                            <TrendingUp className="h-8 w-8 text-green-600" />
+                                        </div>
+                                        <div className="text-3xl font-bold text-gray-900">
+                                            ₹{(totalRevenue / 1000000).toFixed(1)}M
+                                        </div>
+                                        <div className="text-sm text-green-600 mt-1">+18% from last month</div>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-gray-600 text-sm font-medium">Active Dealers</h3>
+                                            <Users className="h-8 w-8 text-blue-600" />
+                                        </div>
+                                        <div className="text-3xl font-bold text-gray-900">{mockDealers.length}</div>
+                                        <div className="text-sm text-gray-500 mt-1">Across all levels</div>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-gray-600 text-sm font-medium">Products</h3>
+                                            <Package className="h-8 w-8 text-purple-600" />
+                                        </div>
+                                        <div className="text-3xl font-bold text-gray-900">{mockProducts.length}</div>
+                                        <div className="text-sm text-gray-500 mt-1">In catalog</div>
+                                    </div>
+                                </div>
+
+                                {/* Order Status Breakdown */}
+                                <div className="bg-white rounded-xl shadow-md p-6">
+                                    <h2 className="text-2xl font-bold mb-6 flex items-center">
+                                        <BarChart3 className="h-6 w-6 mr-2 text-primary-500" />
+                                        Order Status Analytics
+                                    </h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
+                                            <CheckCircle className="h-10 w-10 text-green-600 mx-auto mb-2" />
+                                            <div className="text-3xl font-bold text-green-600">{orderStats.approved}</div>
+                                            <div className="text-sm text-gray-600 mt-1">Approved</div>
+                                        </div>
+                                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-center">
+                                            <AlertCircle className="h-10 w-10 text-yellow-600 mx-auto mb-2" />
+                                            <div className="text-3xl font-bold text-yellow-600">{orderStats.partialApproval}</div>
+                                            <div className="text-sm text-gray-600 mt-1">Partial Approval</div>
+                                        </div>
+                                        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
+                                            <XCircle className="h-10 w-10 text-red-600 mx-auto mb-2" />
+                                            <div className="text-3xl font-bold text-red-600">{orderStats.rejected}</div>
+                                            <div className="text-sm text-gray-600 mt-1">Rejected</div>
+                                        </div>
+                                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+                                            <Clock className="h-10 w-10 text-blue-600 mx-auto mb-2" />
+                                            <div className="text-3xl font-bold text-blue-600">{orderStats.pending}</div>
+                                            <div className="text-sm text-gray-600 mt-1">Pending</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Top Dealers */}
+                                <div className="bg-white rounded-xl shadow-md p-6">
+                                    <h2 className="text-2xl font-bold mb-6">Top Performing Dealers</h2>
+                                    <div className="space-y-3">
+                                        {mockDealers
+                                            .sort((a, b) => b.performanceScore - a.performanceScore)
+                                            .slice(0, 5)
+                                            .map((dealer, index) => (
+                                                <div key={dealer.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                                    <div className="flex items-center space-x-4">
+                                                        <div className="text-2xl font-bold text-gray-400">#{index + 1}</div>
+                                                        <div>
+                                                            <div className="font-semibold">{dealer.name}</div>
+                                                            <div className="text-sm text-gray-600">{dealer.level} • {dealer.city}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-2xl font-bold text-primary-600">{dealer.performanceScore}%</div>
+                                                        <div className="text-sm text-gray-600">{dealer.totalOrders} orders</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Dealers Tab */}
+                        {activeTab === 'dealers' && (
+                            <div className="space-y-6">
+                                <div className="bg-white rounded-xl shadow-md p-6">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-bold">Dealer Management</h2>
+                                        <button
+                                            onClick={() => setShowAddDealer(!showAddDealer)}
+                                            className="btn-primary flex items-center space-x-2"
+                                        >
+                                            <Plus className="h-5 w-5" />
+                                            <span>Add Dealer</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Add Dealer Form */}
+                                    {showAddDealer && (
+                                        <div className="bg-gray-50 border-2 border-primary-500 rounded-lg p-6 mb-6">
+                                            <h3 className="text-xl font-bold mb-4">Add New Dealer</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <input type="text" placeholder="Dealer Name" className="input-field" />
+                                                <input type="email" placeholder="Email" className="input-field" />
+                                                <input type="tel" placeholder="Phone" className="input-field" />
+                                                <select className="input-field">
+                                                    <option>Select Level</option>
+                                                    <option>L1</option>
+                                                    <option>L2</option>
+                                                    <option>L3</option>
+                                                    <option>WAREHOUSE</option>
+                                                </select>
+                                                <input type="text" placeholder="City" className="input-field" />
+                                                <input type="text" placeholder="State" className="input-field" />
+                                                <input type="text" placeholder="Pincode" className="input-field" />
+                                                <input type="text" placeholder="Service Pincodes (comma-separated)" className="input-field md:col-span-2" />
+                                                <textarea placeholder="Address" className="input-field md:col-span-2" rows={2}></textarea>
+                                            </div>
+                                            <div className="flex justify-end space-x-4 mt-4">
+                                                <button onClick={() => setShowAddDealer(false)} className="btn-outline">
+                                                    Cancel
+                                                </button>
+                                                <button className="btn-primary">
+                                                    Save Dealer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Dealer List */}
+                                    <div className="space-y-4">
+                                        {mockDealers.map(dealer => (
+                                            <div key={dealer.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-primary-500 transition-all">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-xl font-bold mb-2">{dealer.name}</h3>
+                                                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-600">
+                                                            <div><span className="font-semibold">Level:</span> <span className="badge-yellow">{dealer.level}</span></div>
+                                                            <div><span className="font-semibold">Location:</span> {dealer.city}, {dealer.state}</div>
+                                                            <div><span className="font-semibold">Email:</span> {dealer.email}</div>
+                                                            <div><span className="font-semibold">Phone:</span> {dealer.phone}</div>
+                                                            <div className="col-span-2"><span className="font-semibold">Pincodes:</span> {dealer.servicePincodes.join(', ')}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right ml-6">
+                                                        <div className="text-3xl font-bold text-primary-600 mb-1">
+                                                            {dealer.performanceScore}%
+                                                        </div>
+                                                        <div className="text-sm text-gray-600 mb-3">Performance</div>
+                                                        <div className="space-y-1 text-sm">
+                                                            <div className="font-semibold">Total: {dealer.totalOrders}</div>
+                                                            <div className="text-green-600">✓ Approved: {dealer.approvedOrders}</div>
+                                                            <div className="text-red-600">✗ Rejected: {dealer.rejectedOrders}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Order Details */}
+                                                <div className="mt-4 pt-4 border-t">
+                                                    <h4 className="font-semibold mb-3">Recent Orders</h4>
+                                                    <div className="space-y-2">
+                                                        {mockOrders
+                                                            .filter(o => o.id.includes(dealer.id.slice(-3)))
+                                                            .slice(0, 2)
+                                                            .map(order => (
+                                                                <div key={order.id} className="bg-gray-50 rounded-lg p-3 text-sm">
+                                                                    <div className="flex justify-between mb-2">
+                                                                        <span className="font-semibold">{order.orderNumber}</span>
+                                                                        <span className={`px-2 py-1 rounded-full text-xs ${
+                                                                            order.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                                                                            order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                                                                            'bg-blue-100 text-blue-700'
+                                                                        }`}>
+                                                                            {order.status}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="text-gray-600">
+                                                                        {order.items.length} item(s) • ₹{order.totalAmount.toLocaleString('en-IN')}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Parts Available */}
+                                                <div className="mt-4 pt-4 border-t">
+                                                    <h4 className="font-semibold mb-3">Parts Available (Sample)</h4>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {mockProducts.slice(0, 4).map(product => {
+                                                            const stock = Math.floor(Math.random() * 30) + 5
+                                                            return (
+                                                                <div key={product.id} className="bg-gray-50 rounded p-2 text-xs">
+                                                                    <div className="font-semibold truncate">{product.name}</div>
+                                                                    <div className="text-gray-600">{product.partNumber}</div>
+                                                                    <div className={`font-bold mt-1 ${
+                                                                        stock > 15 ? 'text-green-600' : 'text-yellow-600'
+                                                                    }`}>
+                                                                        {stock} units
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-end space-x-2 pt-4 border-t">
+                                                    <button className="flex items-center space-x-1 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                                                        <Edit className="h-4 w-4" />
+                                                        <span>Edit</span>
+                                                    </button>
+                                                    <button className="flex items-center space-x-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                                                        <Trash2 className="h-4 w-4" />
+                                                        <span>Deactivate</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                            </div>
+                        )}
+
+                {/* Products Tab */}
+                {activeTab === 'products' && (
+                    <div className="space-y-6">
+                        <div className="bg-white rounded-xl shadow-md p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold">Product Management</h2>
+                                <button
+                                    onClick={() => setShowAddProduct(!showAddProduct)}
+                                    className="btn-primary flex items-center space-x-2"
+                                >
+                                    <Plus className="h-5 w-5" />
+                                    <span>Add Product</span>
+                                </button>
+                            </div>
+
+                            {/* Add Product Form */}
+                            {showAddProduct && (
+                                <div className="bg-gray-50 border-2 border-primary-500 rounded-lg p-6 mb-6">
+                                    <h3 className="text-xl font-bold mb-4">Add New Product</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input type="text" placeholder="Part Number" className="input-field" />
+                                        <input type="text" placeholder="Product Name" className="input-field" />
+                                        <select className="input-field">
+                                            <option>Select Category</option>
+                                            <option>Hydraulic Parts</option>
+                                            <option>Electrical Systems</option>
+                                            <option>Structural Parts</option>
+                                            <option>Filters & Oils</option>
+                                        </select>
+                                        <input type="number" placeholder="Price (₹)" className="input-field" />
+                                        <input type="number" placeholder="Stock Quantity" className="input-field" />
+                                        <input type="text" placeholder="Weight (kg)" className="input-field" />
+                                        <textarea placeholder="Description" className="input-field md:col-span-2" rows={3}></textarea>
+                                        <textarea placeholder="Specifications (JSON format)" className="input-field md:col-span-2" rows={3}></textarea>
+                                        <input type="text" placeholder="Compatible Machines (comma-separated IDs)" className="input-field md:col-span-2" />
+                                    </div>
+                                    <div className="flex justify-end space-x-4 mt-4">
+                                        <button onClick={() => setShowAddProduct(false)} className="btn-outline">
+                                            Cancel
+                                        </button>
+                                        <button className="btn-primary">
+                                            Save Product
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Product List */}
+                            <div className="space-y-4">
+                                {mockProducts.map(product => {
+                                    // Generate random availability across dealers
+                                    const availability = mockDealers.map(dealer => ({
+                                        dealer: dealer.name,
+                                        level: dealer.level,
+                                        quantity: Math.floor(Math.random() * 40)
+                                    })).filter(a => a.quantity > 0)
+
+                                    return (
+                                        <div key={product.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-primary-500 transition-all">
+                                            <div className="flex gap-4 mb-4">
+                                                <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <div className="text-3xl">🔧</div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h3 className="font-bold text-lg mb-1">{product.name}</h3>
+                                                    <div className="text-sm text-gray-600 mb-2">{product.partNumber}</div>
+                                                    <div className="flex justify-between items-center">
+                                                        <div className="font-bold text-primary-600 text-xl">
+                                                            ₹{product.price.toLocaleString('en-IN')}
+                                                        </div>
+                                                        <div className={`text-sm font-semibold ${product.stock > 10 ? 'text-green-600' : 'text-red-600'}`}>
+                                                            Total Stock: {product.stock}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Availability Across Dealers */}
+                                            <div className="border-t pt-4">
+                                                <h4 className="font-semibold mb-3">Availability Across Dealers</h4>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                    {availability.map((avail, idx) => (
+                                                        <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                                                            <div className="font-semibold text-sm truncate">{avail.dealer}</div>
+                                                            <div className="text-xs text-gray-600 mb-1">
+                                                                <span className="badge-yellow inline-block px-2 py-0.5 text-xs">{avail.level}</span>
+                                                            </div>
+                                                            <div className={`text-lg font-bold ${avail.quantity > 20 ? 'text-green-600' :
+                                                                    avail.quantity > 10 ? 'text-yellow-600' :
+                                                                        'text-orange-600'
+                                                                }`}>
+                                                                {avail.quantity} units
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {availability.length === 0 && (
+                                                        <div className="col-span-3 text-center text-gray-500 py-4">
+                                                            Not available at any dealer
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex space-x-2 mt-4 pt-4 border-t">
+                                                <button className="flex-1 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium">
+                                                    Edit Product
+                                                </button>
+                                                <button className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium">
+                                                    Delete Product
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Inventory Tab */}
+                {activeTab === 'inventory' && (
+                    <div className="bg-white rounded-xl shadow-md p-6">
+                        <h2 className="text-2xl font-bold mb-6">Inventory Status Across Dealers</h2>
+                        <div className="space-y-6">
+                            {mockDealers.map(dealer => (
+                                <div key={dealer.id} className="border-2 border-gray-200 rounded-lg p-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div>
+                                            <h3 className="text-xl font-bold">{dealer.name}</h3>
+                                            <div className="text-sm text-gray-600">{dealer.level} • {dealer.city}</div>
+                                        </div>
+                                        <div className="badge-yellow">{dealer.level}</div>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {mockProducts.slice(0, 4).map(product => {
+                                            const stock = Math.floor(Math.random() * 50)
+                                            return (
+                                                <div key={product.id} className="bg-gray-50 rounded-lg p-3">
+                                                    <div className="text-sm font-semibold mb-1 truncate">{product.name}</div>
+                                                    <div className="text-xs text-gray-600 mb-2">{product.partNumber}</div>
+                                                    <div className={`text-lg font-bold ${stock > 10 ? 'text-green-600' : stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                                        {stock} units
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Orders Tab */}
+                {activeTab === 'orders' && (
+                    <div className="bg-white rounded-xl shadow-md p-6">
+                        <h2 className="text-2xl font-bold mb-6">All Orders</h2>
+                        <div className="space-y-4">
+                            {mockOrders.slice(0, 10).map(order => (
+                                <div key={order.id} className="border-2 border-gray-200 rounded-lg p-6">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold">{order.orderNumber}</h3>
+                                            <div className="text-sm text-gray-600">
+                                                {new Date(order.createdAt).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-bold text-primary-600">
+                                                ₹{order.totalAmount.toLocaleString('en-IN')}
+                                            </div>
+                                            <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mt-2 ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
+                                                order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                                                    'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                {order.status}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        {order.items.length} item(s)
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Other tabs remain the same */}
+                {activeTab === 'machines' && (
+                    <div className="bg-white rounded-xl shadow-md p-6">
+                        <h2 className="text-2xl font-bold mb-6">Machine Repository</h2>
+                        <div className="space-y-6">
+                            {mockMachines.map(machine => {
+                                // Get compatible parts
+                                const compatibleParts = mockProducts.filter(p =>
+                                    p.compatibleMachines.includes(machine.id)
+                                )
+
+                                // Separate basic and customized parts
+                                const basicParts = compatibleParts.filter(p => !p.isCustomPart)
+                                const customizedParts = compatibleParts.filter(p => p.isCustomPart)
+
+                                return (
+                                    <div key={machine.id} className="border-2 border-gray-200 rounded-lg p-6">
+                                        <div className="flex gap-4 mb-4">
+                                            <div className="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <div className="text-5xl">🏗️</div>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-2xl font-bold mb-2">{machine.name}</h3>
+                                                <div className="text-sm text-gray-600 space-y-1">
+                                                    <div><span className="font-semibold">Model:</span> {machine.model}</div>
+                                                    <div><span className="font-semibold">Category:</span> {machine.category}</div>
+                                                    {machine.isCustomizable && (
+                                                        <div className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-xs font-semibold mt-2">
+                                                            ✨ Customizable
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Compatible Parts */}
+                                        <div className="border-t pt-4 mt-4">
+                                            <h4 className="font-semibold text-lg mb-3">Compatible Parts ({compatibleParts.length})</h4>
+
+                                            {/* Basic Required Parts */}
+                                            <div className="mb-4">
+                                                <h5 className="font-semibold text-md mb-2 flex items-center">
+                                                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-2">BASIC</span>
+                                                    Required Parts ({basicParts.length})
+                                                </h5>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                    {basicParts.slice(0, 6).map(part => (
+                                                        <div key={part.id} className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                                            <div className="font-semibold text-sm">{part.name}</div>
+                                                            <div className="text-xs text-gray-600">{part.partNumber}</div>
+                                                            <div className="flex justify-between items-center mt-1">
+                                                                <span className="text-sm font-bold text-green-600">
+                                                                    ₹{part.price.toLocaleString('en-IN')}
+                                                                </span>
+                                                                <span className="text-xs text-gray-600">
+                                                                    Stock: {part.stock}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {basicParts.length === 0 && (
+                                                        <div className="col-span-2 text-center text-gray-500 py-2 text-sm">
+                                                            No basic parts available
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Customized Parts */}
+                                            <div>
+                                                <h5 className="font-semibold text-md mb-2 flex items-center">
+                                                    <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs mr-2">CUSTOM</span>
+                                                    Customized Parts ({customizedParts.length})
+                                                </h5>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                    {customizedParts.slice(0, 4).map(part => (
+                                                        <div key={part.id} className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                                            <div className="font-semibold text-sm">{part.name}</div>
+                                                            <div className="text-xs text-gray-600">{part.partNumber}</div>
+                                                            <div className="flex justify-between items-center mt-1">
+                                                                <span className="text-sm font-bold text-purple-600">
+                                                                    ₹{part.price.toLocaleString('en-IN')}
+                                                                </span>
+                                                                <span className="text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded">
+                                                                    Custom
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {customizedParts.length === 0 && (
+                                                        <div className="col-span-2 text-center text-gray-500 py-2 text-sm">
+                                                            No customized parts available
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'support' && (
+                    <div className="bg-white rounded-xl shadow-md p-6">
+                        <h2 className="text-2xl font-bold mb-6">Support Tickets</h2>
+                        <div className="space-y-4">
+                            {mockSupportTickets.map(ticket => (
+                                <div key={ticket.id} className="border-2 border-gray-200 rounded-lg p-6">
+                                    <h3 className="text-lg font-bold mb-2">{ticket.ticketNumber}</h3>
+                                    <div className="text-gray-900 mb-2">{ticket.subject}</div>
+                                    <div className="text-sm text-gray-600">{ticket.description}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </main>
+        </div>
+            </div >
+        </div >
+    )
+}
