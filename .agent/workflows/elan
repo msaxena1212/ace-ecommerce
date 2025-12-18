@@ -1,0 +1,166 @@
+---
+description: ACE E-commerce Platform - Complete User and System Workflows
+---
+
+# ACE E-commerce Platform Workflows
+
+## 1. User Journey Workflows
+
+### 1.1 Unregistered User Flow
+
+```mermaid
+flowchart TD
+    A[User Visits Website] --> B{Browse Products}
+    B --> C[View Product Details]
+    C --> D[Add to Cart]
+    D --> E{Continue Shopping?}
+    E -->|Yes| B
+    E -->|No| F[Proceed to Checkout]
+    F --> G{User Logged In?}
+    G -->|No| H[Login/Register Prompt]
+    H --> I{Choose Action}
+    I -->|Login| J[Login Form]
+    I -->|Register| K[Registration Form]
+    J --> L[Verify Credentials]
+    K --> M[Create Account]
+    L --> N[Checkout Page]
+    M --> N
+    G -->|Yes| N
+    N --> O[Enter Delivery Address]
+    O --> P[Select Delivery Option]
+    P --> Q[Review Order]
+    Q --> R[Place Order]
+    R --> S[Order Confirmation]
+```---
+description: ACE E-commerce Platform - Complete User and System Workflows
+---
+
+# ACE E-commerce Platform Workflows
+
+## 1. User Journey Workflows
+
+### 1.1 Unregistered User Flow
+
+```mermaid
+flowchart TD
+    A[User Visits Website] --> B{Browse Products}
+    B --> C[View Product Details]
+    C --> D[Add to Cart]
+    D --> E{Continue Shopping?}
+    E -->|Yes| B
+    E -->|No| F[Proceed to Checkout]
+    F --> G{User Logged In?}
+    G -->|No| H[Login/Register Prompt]
+    H --> I{Choose Action}
+    I -->|Login| J[Login Form]
+    I -->|Register| K[Registration Form]
+    J --> L[Verify Credentials]
+    K --> M[Create Account]
+    L --> N[Checkout Page]
+    M --> N
+    G -->|Yes| N
+    N --> O[Enter Delivery Address]
+    O --> P[Select Delivery Option]
+    P --> Q[Review Order]
+    Q --> R[Place Order]
+    R --> S[Order Confirmation]
+```---
+description: ACE E-commerce Platform - Complete User and System Workflows
+---
+
+# ACE E-commerce Platform Workflows
+
+## 1. User Journey Workflows
+
+### 1.1 Unregistered User Flow
+
+```mermaid
+flowchart TD
+    A[User Visits Website] --> B{Browse Products}
+    B --> C[View Product Details]
+    C --> D[Add to Cart]
+    D --> E{Continue Shopping?}
+    E -->|Yes| B
+    E -->|No| F[Proceed to Checkout]
+    F --> G{User Logged In?}
+    G -->|No| H[Login/Register Prompt]
+    H --> I{Choose Action}
+    I -->|Login| J[Login Form]
+    I -->|Register| K[Registration Form]
+    J --> L[Verify Credentials]
+    K --> M[Create Account]
+    L --> N[Checkout Page]
+    M --> N
+    G -->|Yes| N
+    N --> O[Enter Delivery Address]
+    O --> P[Select Delivery Option]
+    P --> Q[Review Order]
+    Q --> R[Place Order]
+    R --> S[Order Confirmation]
+```---
+description: ACE E-commerce Platform - Complete User and System Workflows
+---
+
+# ACE E-commerce Platform Workflows
+
+## 1. User Journey Workflows
+
+### 1.1 Unregistered User Flow
+
+```mermaid
+flowchart TD
+    A[User Visits Website] --> B{Browse Products}
+    B --> C[View Product Details]
+    C --> D[Add to Cart]
+    D --> E{Continue Shopping?}
+    E -->|Yes| B
+    E -->|No| F[Proceed to Checkout]
+    F --> G{User Logged In?}
+    G -->|No| H[Login/Register Prompt]
+    H --> I{Choose Action}
+    I -->|Login| J[Login Form]
+    I -->|Register| K[Registration Form]
+    J --> L[Verify Credentials]
+    K --> M[Create Account]
+    L --> N[Checkout Page]
+    M --> N
+    G -->|Yes| N
+    N --> O[Enter Delivery Address]
+    O --> P[Select Delivery Option]
+    P --> Q[Review Order]
+    Q --> R[Place Order]
+    R --> S[Order Confirmation]
+```---
+description: ACE E-commerce Platform - Complete User and System Workflows
+---
+
+# ACE E-commerce Platform Workflows
+
+## 1. User Journey Workflows
+
+### 1.1 Unregistered User Flow
+
+```mermaid
+flowchart TD
+    A[User Visits Website] --> B{Browse Products}
+    B --> C[View Product Details]
+    C --> D[Add to Cart]
+    D --> E{Continue Shopping?}
+    E -->|Yes| B
+    E -->|No| F[Proceed to Checkout]
+    F --> G{User Logged In?}
+    G -->|No| H[Login/Register Prompt]
+    H --> I{Choose Action}
+    I -->|Login| J[Login Form]
+    I -->|Register| K[Registration Form]
+    J --> L[Verify Credentials]
+    K --> M[Create Account]
+    L --> N[Checkout Page]
+    M --> N
+    G -->|Yes| N
+    N --> O[Enter Delivery Address]
+    O --> P[Select Delivery Option]
+    P --> Q[Review Order]
+    Q --> R[Place Order]
+    R --> S[Order Confirmation]
+```
