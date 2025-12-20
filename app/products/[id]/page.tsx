@@ -1,25 +1,57 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { ShoppingCart, ArrowLeft, Plus, Minus, Check, Info } from 'lucide-react'
-import { mockProducts } from '@/lib/mockData'
+import { ShoppingCart, ArrowLeft, Plus, Minus, Check, Info, Loader2 } from 'lucide-react'
+import Header from '@/components/Header'
 
 export default function ProductDetailPage() {
     const params = useParams()
     const productId = params.id as string
-    const product = mockProducts.find(p => p.id === productId)
+    const [product, setProduct] = useState<any>(null)
+    const [relatedProducts, setRelatedProducts] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
     const [quantity, setQuantity] = useState(1)
     const [addedToCart, setAddedToCart] = useState(false)
 
+    useEffect(() => {
+        const fetchProductData = async () => {
+            setLoading(true)
+            try {
+                const res = await fetch(`/api/products/${productId}`)
+                const data = await res.json()
+                if (data.product) {
+                    setProduct(data.product)
+                }
+                if (data.relatedProducts) {
+                    setRelatedProducts(data.relatedProducts)
+                }
+            } catch (error) {
+                console.error('Failed to fetch product:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        if (productId) fetchProductData()
+    }, [productId])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loader2 className="h-12 w-12 text-primary-600 animate-spin" />
+            </div>
+        )
+    }
+
     if (!product) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-                    <Link href="/products" className="text-primary-600 hover:underline">
-                        Back to products
+            <div className="min-h-screen bg-gray-50">
+                <Header />
+                <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+                    <h1 className="text-2xl font-bold mb-4 text-gray-900">Product not found</h1>
+                    <Link href="/products" className="text-primary-600 hover:text-primary-700 font-semibold px-6 py-3 bg-white rounded-lg shadow-sm">
+                        Back to Products
                     </Link>
                 </div>
             </div>
@@ -33,28 +65,7 @@ export default function ProductDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <div className="text-2xl font-bold text-primary-600">ACE</div>
-                            <div className="text-sm text-gray-600">Cranes & Equipment</div>
-                        </Link>
-                        <nav className="flex items-center space-x-6">
-                            <Link href="/cart" className="relative hover:text-primary-600 transition-colors">
-                                <ShoppingCart className="h-6 w-6" />
-                                <span className="absolute -top-2 -right-2 bg-accent-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                    0
-                                </span>
-                            </Link>
-                            <Link href="/auth/login" className="hover:text-primary-600 transition-colors">
-                                Login
-                            </Link>
-                        </nav>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}
@@ -69,10 +80,14 @@ export default function ProductDetailPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Product Image */}
                     <div className="bg-white rounded-xl shadow-lg p-8">
-                        <div className="aspect-square bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-                            <div className="text-9xl">🔧</div>
+                        <div className="aspect-square bg-white rounded-lg flex items-center justify-center relative overflow-hidden">
+                            <img
+                                src={product.images && product.images.length > 0 ? product.images[0] : '/assets/cat-mobile-crane.png'}
+                                alt={product.name}
+                                className="w-full h-full object-contain max-h-[400px]"
+                            />
                             {product.isCustomPart && (
-                                <div className="absolute top-4 right-4 bg-accent-500 text-white px-4 py-2 rounded-full font-semibold">
+                                <div className="absolute top-4 right-4 bg-accent-500 text-white px-4 py-2 rounded-full font-semibold shadow-md">
                                     Custom Part
                                 </div>
                             )}
@@ -101,10 +116,10 @@ export default function ProductDetailPage() {
                             <div className="mb-6">
                                 <h3 className="font-semibold text-lg mb-3">Specifications</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                    {Object.entries(product.specifications).map(([key, value]) => (
+                                    {Object.entries(product.specifications || {}).map(([key, value]) => (
                                         <div key={key} className="flex justify-between py-2 border-b border-gray-200 last:border-0">
                                             <span className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                            <span className="font-medium text-gray-900">{value}</span>
+                                            <span className="font-medium text-gray-900">{String(value)}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -149,8 +164,8 @@ export default function ProductDetailPage() {
                             <button
                                 onClick={handleAddToCart}
                                 className={`w-full py-4 rounded-lg font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2 ${addedToCart
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-primary-600 hover:bg-primary-700 text-white'
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-primary-600 hover:bg-primary-700 text-white'
                                     }`}
                             >
                                 {addedToCart ? (
@@ -186,14 +201,18 @@ export default function ProductDetailPage() {
                 <div className="mt-16">
                     <h2 className="text-3xl font-bold mb-8">Related Products</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4).map(relatedProduct => (
+                        {relatedProducts.map(relatedProduct => (
                             <Link
                                 key={relatedProduct.id}
                                 href={`/products/${relatedProduct.id}`}
                                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
                             >
-                                <div className="aspect-square bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
-                                    <div className="text-5xl">🔧</div>
+                                <div className="aspect-square bg-white p-4 flex items-center justify-center group-hover:bg-primary-50 transition-colors">
+                                    <img
+                                        src={relatedProduct.images && relatedProduct.images.length > 0 ? relatedProduct.images[0] : '/assets/cat-mobile-crane.png'}
+                                        alt={relatedProduct.name}
+                                        className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300"
+                                    />
                                 </div>
                                 <div className="p-4">
                                     <h3 className="font-semibold mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">

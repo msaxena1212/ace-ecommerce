@@ -4,7 +4,7 @@
 
 @layer components {
 
-  /* Primary Buttons - JCB Yellow */
+  /* Primary Buttons - ACE Orange */
   .btn-primary {
     @apply bg-primary-500 hover:bg-primary-600 text-black font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
   }
@@ -29,7 +29,7 @@
     @apply bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200;
   }
 
-  /* Badge - Yellow */
+  /* Badge - Orange */
   .badge-yellow {
     @apply bg-primary-500 text-black px-3 py-1 rounded-full text-sm font-semibold;
   }
@@ -43,6 +43,19 @@
   .section-header {
     @apply text-3xl font-bold text-black mb-6 border-l-4 border-primary-500 pl-4;
   }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
 }
 
 /* Custom scrollbar */
@@ -55,7 +68,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FFCB05;
+  background: #f28b05;
   border-radius: 5px;
 }
 

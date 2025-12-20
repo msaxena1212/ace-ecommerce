@@ -9,16 +9,16 @@ module.exports = {
         extend: {
             colors: {
                 primary: {
-                    50: '#fffbeb',
-                    100: '#fef3c7',
-                    200: '#fde68a',
-                    300: '#fcd34d',
-                    400: '#fbbf24',
-                    500: '#FFCB05', // JCB Yellow
-                    600: '#d97706',
-                    700: '#b45309',
-                    800: '#92400e',
-                    900: '#78350f',
+                    50: '#fff7ed',
+                    100: '#ffedd5',
+                    200: '#fed7aa',
+                    300: '#fdba74',
+                    400: '#fb923c',
+                    500: '#f28b05', // ACE Orange
+                    600: '#ea580c',
+                    700: '#c2410c',
+                    800: '#9a3412',
+                    900: '#7c2d12',
                 },
                 accent: {
                     50: '#f9fafb',
@@ -33,7 +33,7 @@ module.exports = {
                     900: '#111827',
                 },
                 black: '#000000',
-                jcbYellow: '#FFCB05',
+                aceOrange: '#f28b05',
             },
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],

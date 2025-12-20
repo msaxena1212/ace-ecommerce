@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Package, Wrench, ShoppingCart, AlertCircle } from 'lucide-react'
 import { mockMachines, mockProducts, mockCustomerMachines } from '@/lib/mockData'
+import Header from '@/components/Header'
 
 export default function MachineCompatiblePartsPage({ params }: { params: { machineId: string } }) {
     // State to hold the IDs of parts currently added to the cart
@@ -37,7 +38,7 @@ export default function MachineCompatiblePartsPage({ params }: { params: { machi
     // --- PART FILTERING ---
     // Find all products in our catalog that list this machine's ID in their 'compatibleMachines' list
     const allCompatibleParts = mockProducts.filter(p =>
-        p.compatibleMachines?.includes(machine.id)
+        (p as any).compatibleMachines?.includes(machine.id)
     )
 
     // Split parts into two categories for display:
@@ -142,29 +143,7 @@ export default function MachineCompatiblePartsPage({ params }: { params: { machi
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-black text-white shadow-lg sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-3">
-                            <div className="text-3xl font-bold text-primary-500">ACE</div>
-                            <div className="text-sm text-gray-300">Parts & Equipment</div>
-                        </div>
-                        <nav className="flex items-center space-x-6">
-                            <Link href="/" className="text-gray-300 hover:text-primary-500 transition-colors">
-                                Home
-                            </Link>
-                            <Link href="/products" className="text-gray-300 hover:text-primary-500 transition-colors">
-                                Products
-                            </Link>
-                            <Link href="/cart" className="flex items-center space-x-2 text-gray-300 hover:text-primary-500 transition-colors">
-                                <ShoppingCart className="h-5 w-5" />
-                                <span>Cart</span>
-                            </Link>
-                        </nav>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}

@@ -1,54 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getProducts, getCategories } from '@/lib/services/dataService'
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url)
-        const category = searchParams.get('category')
-        const search = searchParams.get('search')
-        const page = parseInt(searchParams.get('page') || '1')
-        const limit = parseInt(searchParams.get('limit') || '12')
+        const { searchParams } = new URL(req.url)
+        const category = searchParams.get('category') || undefined
+        const searchQuery = searchParams.get('search') || undefined
+        const priceRange = searchParams.get('priceRange') || undefined
 
-        const where: any = {
-            isActive: true,
-        }
+        const products = await getProducts({
+            category,
+            searchQuery,
+            priceRange
+        })
 
-        if (category) {
-            where.category = category
-        }
-
-        if (search) {
-            where.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
-                { partNumber: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
-            ]
-        }
-
-        const [products, total] = await Promise.all([
-            prisma.product.findMany({
-                where,
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: { createdAt: 'desc' },
-            }),
-            prisma.product.count({ where }),
-        ])
+        const categories = await getCategories()
 
         return NextResponse.json({
             products,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages: Math.ceil(total / limit),
-            },
+            count: products.length,
+            categories
         })
     } catch (error) {
-        console.error('Error fetching products:', error)
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        )
+        console.error('API Error:', error)
+        return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
     }
 }

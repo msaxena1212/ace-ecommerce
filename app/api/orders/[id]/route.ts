@@ -10,25 +10,18 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const order = await prisma.order.findUnique({
-            where: { id: params.id },
+        const id = params.id
+        const order = await prisma.order.findFirst({
+            where: {
+                OR: [
+                    { id },
+                    { orderNumber: id }
+                ]
+            },
             include: {
                 items: {
                     include: {
                         product: true
-                    }
-                },
-                routing: {
-                    include: {
-                        dealer: true
-                    },
-                    orderBy: { createdAt: 'desc' }
-                },
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
                     }
                 }
             }
@@ -39,6 +32,25 @@ export async function GET(
                 { success: false, error: 'Order not found' },
                 { status: 404 }
             )
+        }
+
+        // Parse JSON strings for SQLite
+        try {
+            if (typeof order.deliveryAddress === 'string') {
+                (order as any).deliveryAddress = JSON.parse(order.deliveryAddress)
+            }
+            order.items.forEach((item: any) => {
+                if (item.product) {
+                    if (typeof item.product.images === 'string') {
+                        item.product.images = JSON.parse(item.product.images)
+                    }
+                    if (typeof item.product.specifications === 'string') {
+                        item.product.specifications = JSON.parse(item.product.specifications)
+                    }
+                }
+            })
+        } catch (e) {
+            console.error('JSON Parse error in Order API:', e)
         }
 
         return NextResponse.json({

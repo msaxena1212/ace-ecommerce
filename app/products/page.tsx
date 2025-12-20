@@ -1,56 +1,64 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, Filter, ShoppingCart } from 'lucide-react'
-import { mockProducts } from '@/lib/mockData'
+import Header from '@/components/Header'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function ProductsPage() {
-    const [searchQuery, setSearchQuery] = useState('')
-    const [selectedCategory, setSelectedCategory] = useState('All')
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const [products, setProducts] = useState<any[]>([])
+    const [categories, setCategories] = useState<string[]>(['All'])
+    const [loading, setLoading] = useState(true)
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+    const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All')
     const [priceRange, setPriceRange] = useState('All')
 
-    const categories = ['All', 'Hydraulic Parts', 'Structural Parts', 'Cables & Ropes', 'Brake System', 'Filters', 'Bearings', 'Electrical']
     const priceRanges = ['All', 'Under ₹10,000', '₹10,000 - ₹50,000', '₹50,000 - ₹100,000', 'Above ₹100,000']
 
-    const filteredProducts = mockProducts.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.partNumber.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true)
+            try {
+                const params = new URLSearchParams()
+                if (searchQuery) params.set('search', searchQuery)
+                if (selectedCategory && selectedCategory !== 'All') params.set('category', selectedCategory)
 
+                const res = await fetch(`/api/products?${params.toString()}`)
+                const data = await res.json()
+
+                if (data.products) {
+                    setProducts(data.products)
+                }
+                if (data.categories) {
+                    setCategories(data.categories)
+                }
+            } catch (error) {
+                console.error('Failed to fetch products:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        const debounceTimer = setTimeout(fetchProducts, 300)
+        return () => clearTimeout(debounceTimer)
+    }, [searchQuery, selectedCategory])
+
+    const filteredProducts = products.filter(product => {
         let matchesPrice = true
         if (priceRange === 'Under ₹10,000') matchesPrice = product.price < 10000
         else if (priceRange === '₹10,000 - ₹50,000') matchesPrice = product.price >= 10000 && product.price < 50000
         else if (priceRange === '₹50,000 - ₹100,000') matchesPrice = product.price >= 50000 && product.price < 100000
         else if (priceRange === 'Above ₹100,000') matchesPrice = product.price >= 100000
 
-        return matchesSearch && matchesCategory && matchesPrice
+        return matchesPrice
     })
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <div className="text-2xl font-bold text-primary-600">ACE</div>
-                            <div className="text-sm text-gray-600">Cranes & Equipment</div>
-                        </Link>
-                        <nav className="flex items-center space-x-6">
-                            <Link href="/cart" className="relative hover:text-primary-600 transition-colors">
-                                <ShoppingCart className="h-6 w-6" />
-                                <span className="absolute -top-2 -right-2 bg-accent-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                    0
-                                </span>
-                            </Link>
-                            <Link href="/auth/login" className="hover:text-primary-600 transition-colors">
-                                Login
-                            </Link>
-                        </nav>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Page Header */}
@@ -142,7 +150,7 @@ export default function ProductsPage() {
 
                         {/* Results Count */}
                         <div className="mb-4 text-sm text-gray-600">
-                            Showing {filteredProducts.length} of {mockProducts.length} products
+                            Showing {filteredProducts.length} products
                         </div>
 
                         {/* Products Grid */}
@@ -153,17 +161,21 @@ export default function ProductsPage() {
                                     href={`/products/${product.id}`}
                                     className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
                                 >
-                                    <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-                                            <div className="text-6xl">🔧</div>
+                                    <div className="aspect-square bg-white relative overflow-hidden group-hover:bg-primary-50 transition-colors p-4 flex items-center justify-center">
+                                        <div className="relative w-full h-full">
+                                            <img
+                                                src={product.images && product.images.length > 0 ? product.images[0] : '/assets/cat-mobile-crane.png'}
+                                                alt={product.name}
+                                                className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300"
+                                            />
                                         </div>
                                         {product.isCustomPart && (
-                                            <div className="absolute top-3 right-3 bg-accent-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                            <div className="absolute top-3 right-3 bg-accent-500 text-white text-xs px-3 py-1 rounded-full font-semibold shadow-sm z-10">
                                                 Custom Part
                                             </div>
                                         )}
                                         {product.stock < 10 && (
-                                            <div className="absolute top-3 left-3 bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                            <div className="absolute top-3 left-3 bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-semibold shadow-sm z-10">
                                                 Low Stock
                                             </div>
                                         )}

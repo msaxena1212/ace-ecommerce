@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Package, TrendingUp, Clock, CheckCircle, XCircle, LogOut, Box, Truck, MapPin } from 'lucide-react'
 import { mockOrders, mockProducts, mockDealers, mockUserAddresses } from '@/lib/mockData'
+import Header from '@/components/Header'
 
 export default function DealerDashboardPage() {
     // --- STATE MANAGEMENT ---
@@ -127,27 +128,7 @@ export default function DealerDashboardPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-black text-white shadow-lg sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-3">
-                            <div className="text-3xl font-bold text-primary-500">ACE</div>
-                            <div className="text-sm text-gray-300">Dealer Portal</div>
-                        </div>
-                        <nav className="flex items-center space-x-6">
-                            <div className="text-sm">
-                                <span className="text-gray-400">Dealer:</span>
-                                <span className="font-semibold ml-2">{currentDealer.name}</span>
-                            </div>
-                            <Link href="/" className="flex items-center space-x-2 text-gray-300 hover:text-primary-500 transition-colors">
-                                <LogOut className="h-5 w-5" />
-                                <span>Logout</span>
-                            </Link>
-                        </nav>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <h1 className="text-4xl font-bold mb-8">Dealer Dashboard</h1>
@@ -242,7 +223,7 @@ export default function DealerDashboardPage() {
                                                         <div>
                                                             <h3 className="text-xl font-semibold mb-1">{order.orderNumber}</h3>
                                                             <div className="text-sm text-gray-600">
-                                                                Routed: {new Date(order.routedAt || '').toLocaleString()}
+                                                                Routed: <span suppressHydrationWarning>{new Date(order.routedAt || '').toLocaleString()}</span>
                                                             </div>
                                                             <div className="text-sm text-gray-600">
                                                                 Customer: {order.deliveryAddress?.name || 'N/A'}
@@ -271,13 +252,29 @@ export default function DealerDashboardPage() {
                                                                 return (
                                                                     <div key={item.id} className="bg-white border-2 border-gray-200 rounded-lg p-4">
                                                                         <div className="flex justify-between items-start mb-3">
-                                                                            <div className="flex-1">
-                                                                                <div className="font-medium">{product?.name}</div>
-                                                                                <div className="text-sm text-gray-600">
-                                                                                    Part #: {product?.partNumber}
+                                                                            <div className="flex-1 flex gap-4">
+                                                                                <div className="w-16 h-16 bg-white border border-gray-200 rounded-md p-1 flex-shrink-0">
+                                                                                    <img
+                                                                                        src={
+                                                                                            product?.category === 'Mobile Cranes' ? '/assets/cat-mobile-crane.png' :
+                                                                                                product?.category === 'Forklift Trucks' ? '/assets/cat-forklift.png' :
+                                                                                                    product?.category === 'Backhoe Loaders' ? '/assets/cat-backhoe.png' :
+                                                                                                        product?.category === 'Hydraulic Parts' ? '/assets/part-hydraulic.png' :
+                                                                                                            product?.category === 'Filters' ? '/assets/part-filter.png' :
+                                                                                                                '/assets/cat-mobile-crane.png'
+                                                                                        }
+                                                                                        alt={product?.name}
+                                                                                        className="w-full h-full object-contain"
+                                                                                    />
                                                                                 </div>
-                                                                                <div className="text-sm text-gray-600 mt-1">
-                                                                                    <span className="font-semibold">Requested Qty:</span> {item.quantity} units
+                                                                                <div>
+                                                                                    <div className="font-medium">{product?.name}</div>
+                                                                                    <div className="text-sm text-gray-600">
+                                                                                        Part #: {product?.partNumber}
+                                                                                    </div>
+                                                                                    <div className="text-sm text-gray-600 mt-1">
+                                                                                        <span className="font-semibold">Requested Qty:</span> {item.quantity} units
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div className="text-right ml-4">
@@ -414,8 +411,26 @@ export default function DealerDashboardPage() {
                                                     'border-green-200 bg-green-50'
                                                 }`}
                                         >
-                                            <div className="font-semibold text-sm mb-1 truncate">{item.name}</div>
-                                            <div className="text-xs text-gray-600 mb-2">{item.partNumber}</div>
+                                            <div className="flex gap-3 mb-2">
+                                                <div className="w-12 h-12 bg-white border border-gray-200 rounded flex items-center justify-center flex-shrink-0 p-1">
+                                                    <img
+                                                        src={
+                                                            item.category === 'Mobile Cranes' ? '/assets/cat-mobile-crane.png' :
+                                                                item.category === 'Forklift Trucks' ? '/assets/cat-forklift.png' :
+                                                                    item.category === 'Backhoe Loaders' ? '/assets/cat-backhoe.png' :
+                                                                        item.category === 'Hydraulic Parts' ? '/assets/part-hydraulic.png' :
+                                                                            item.category === 'Filters' ? '/assets/part-filter.png' :
+                                                                                '/assets/cat-mobile-crane.png'
+                                                        }
+                                                        alt={item.name}
+                                                        className="w-full h-full object-contain"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-sm truncate" title={item.name}>{item.name}</div>
+                                                    <div className="text-xs text-gray-600">{item.partNumber}</div>
+                                                </div>
+                                            </div>
 
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-xs text-gray-600">Stock:</span>

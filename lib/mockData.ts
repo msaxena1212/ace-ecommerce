@@ -8,7 +8,7 @@ export const mockProducts = [
         description: 'Heavy-duty hydraulic cylinder designed for ACE FX14 Mobile Crane. High-pressure rated with corrosion-resistant coating.',
         category: 'Hydraulic Parts',
         price: 45000,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/part-hydraulic.png'],
         specifications: {
             pressure: '350 bar',
             stroke: '1200mm',
@@ -27,7 +27,7 @@ export const mockProducts = [
         description: 'Complete boom extension kit for mobile cranes. Includes all mounting hardware and hydraulic connections.',
         category: 'Structural Parts',
         price: 125000,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/cat-mobile-crane.png'],
         specifications: {
             length: '5m',
             capacity: '10 tons',
@@ -46,7 +46,7 @@ export const mockProducts = [
         description: 'High-tensile wire rope suitable for all ACE cranes. 6x36 construction with independent wire rope core.',
         category: 'Cables & Ropes',
         price: 8500,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/cat-mobile-crane.png'],
         specifications: {
             diameter: '20mm',
             breakingLoad: '30 tons',
@@ -65,7 +65,7 @@ export const mockProducts = [
         description: 'Variable displacement hydraulic pump for ACE construction equipment. High efficiency and reliability.',
         category: 'Hydraulic Parts',
         price: 95000,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/part-hydraulic.png'],
         specifications: {
             displacement: '500cc',
             maxPressure: '420 bar',
@@ -84,7 +84,7 @@ export const mockProducts = [
         description: 'Premium brake pad set for ACE forklift trucks. Long-lasting and reliable braking performance.',
         category: 'Brake System',
         price: 4500,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/cat-forklift.png'],
         specifications: {
             material: 'Ceramic composite',
             thickness: '15mm',
@@ -103,7 +103,7 @@ export const mockProducts = [
         description: 'High-efficiency hydraulic filter element. Protects hydraulic system from contamination.',
         category: 'Filters',
         price: 2800,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/part-filter.png'],
         specifications: {
             filtration: '10 micron',
             flowRate: '150 L/min',
@@ -122,7 +122,7 @@ export const mockProducts = [
         description: 'Heavy-duty slew bearing for tower cranes. Precision engineered for smooth rotation.',
         category: 'Bearings',
         price: 185000,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/cat-mobile-crane.png'],
         specifications: {
             diameter: '2500mm',
             loadCapacity: '150 tons',
@@ -141,7 +141,7 @@ export const mockProducts = [
         description: 'Advanced control panel with digital display for mobile cranes. User-friendly interface.',
         category: 'Electrical',
         price: 65000,
-        images: ['/api/placeholder/400/400'],
+        images: ['/assets/cat-mobile-crane.png'],
         specifications: {
             voltage: '24V DC',
             display: '7" LCD touchscreen',
@@ -152,6 +152,81 @@ export const mockProducts = [
         isCustomPart: false,
         customizationRequired: [],
         stock: 12
+    },
+    {
+        id: 'prod-009',
+        partNumber: 'TRANS-BHL-ACE-01',
+        name: 'Transmission Assembly - Backhoe',
+        description: 'Original ACE transmission assembly for backhoe loaders. High durability and smooth shifting.',
+        category: 'Powertrain',
+        price: 155000,
+        images: ['/assets/cat-backhoe.png'],
+        specifications: {
+            type: 'Powershuttle',
+            speeds: '4 Forward, 4 Reverse',
+            weight: '350kg',
+            compatibility: 'ACE Backhoe Loaders'
+        },
+        isActive: true,
+        isCustomPart: false,
+        customizationRequired: [],
+        stock: 2
+    },
+    {
+        id: 'prod-010',
+        partNumber: 'RAD-ACE-MC-50',
+        name: 'Radiator Assembly - Mobile Crane',
+        description: 'Heavy-duty radiator for cooling system maintenance of mobile cranes.',
+        category: 'Cooling System',
+        price: 38000,
+        images: ['/assets/cat-mobile-crane.png'],
+        specifications: {
+            material: 'Aluminum/Copper',
+            coolingType: 'Liquid cooled',
+            weight: '45kg',
+            pressure: '2.5 bar'
+        },
+        isActive: true,
+        isCustomPart: false,
+        customizationRequired: [],
+        stock: 10
+    },
+    {
+        id: 'prod-011',
+        partNumber: 'WHEEL-RIM-FL-01',
+        name: 'Wheel Rim - Forklift Front',
+        description: 'Robust steel wheel rim for ACE forklifts. Precision engineered for high load capacity.',
+        category: 'Tires & Wheels',
+        price: 12500,
+        images: ['/assets/cat-forklift.png'],
+        specifications: {
+            size: '15"',
+            material: 'Alloy Steel',
+            loadRating: '5 tons',
+            compatibility: 'ACE FL Series'
+        },
+        isActive: true,
+        isCustomPart: false,
+        customizationRequired: [],
+        stock: 24
+    },
+    {
+        id: 'prod-012',
+        partNumber: 'CAB-GLASS-FX14',
+        name: 'Cabin Glass - Front',
+        description: 'Shatter-proof front cabin glass for ACE FX14 Mobile Crane.',
+        category: 'Cab & Body',
+        price: 18500,
+        images: ['/assets/cat-mobile-crane-premium.png'],
+        specifications: {
+            material: 'Laminated Safety Glass',
+            thickness: '6mm',
+            dimensions: '1200mm x 800mm'
+        },
+        isActive: true,
+        isCustomPart: false,
+        customizationRequired: [],
+        stock: 5
     }
 ];
 
@@ -170,7 +245,7 @@ export const mockMachines = [
             maxHeight: '32m',
             enginePower: '180 HP'
         },
-        images: ['/api/placeholder/600/400'],
+        images: ['/assets/cat-mobile-crane.png'],
         isCustomizable: true,
         isActive: true
     },
@@ -188,7 +263,7 @@ export const mockMachines = [
             engineType: 'Diesel',
             fuelCapacity: '80L'
         },
-        images: ['/api/placeholder/600/400'],
+        images: ['/assets/cat-forklift.png'],
         isCustomizable: false,
         isActive: true
     },
@@ -206,7 +281,7 @@ export const mockMachines = [
             maxHeight: '80m',
             tipLoad: '2.5 tons'
         },
-        images: ['/api/placeholder/600/400'],
+        images: ['/assets/cat-mobile-crane.png'],
         isCustomizable: true,
         isActive: true
     },
@@ -224,7 +299,7 @@ export const mockMachines = [
             enginePower: '95 HP',
             operatingWeight: '8500 kg'
         },
-        images: ['/api/placeholder/600/400'],
+        images: ['/assets/cat-backhoe.png'],
         isCustomizable: false,
         isActive: true
     }
@@ -526,6 +601,36 @@ export const mockOrders = [
                 quantity: 2,
                 price: 4500,
                 status: 'FULFILLED'
+            }
+        ]
+    },
+    {
+        id: 'order-002',
+        orderNumber: 'ORD-2024-002',
+        userId: 'user-001',
+        status: 'SHIPPED',
+        totalAmount: 95000,
+        paymentMethod: 'ONLINE',
+        paymentStatus: 'SUCCESS',
+        deliveryAddress: {
+            name: 'John Doe',
+            phone: '+91-9876543210',
+            addressLine1: 'Plot 45, Okhla Industrial Estate',
+            city: 'New Delhi',
+            state: 'Delhi',
+            pincode: '110020'
+        },
+        deliveryPartner: 'BLUE_DART',
+        trackingId: 'BD-987654',
+        estimatedDelivery: '2024-12-25T18:00:00Z',
+        createdAt: '2024-12-20T10:00:00Z',
+        items: [
+            {
+                id: 'item-003',
+                productId: 'prod-004',
+                quantity: 1,
+                price: 95000,
+                status: 'SHIPPED'
             }
         ]
     }

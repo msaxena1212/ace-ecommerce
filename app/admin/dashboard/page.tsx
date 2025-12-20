@@ -16,6 +16,7 @@ import RevenueChart from '@/components/admin/charts/RevenueChart'
 import OrderStatusChart from '@/components/admin/charts/OrderStatusChart'
 import DealerPerformanceChart from '@/components/admin/charts/DealerPerformanceChart'
 import RecentActivity from '@/components/admin/RecentActivity'
+import Header from '@/components/Header'
 
 export default function AdminDashboardPage() {
     const [activeTab, setActiveTab] = useState('overview')
@@ -139,27 +140,7 @@ export default function AdminDashboardPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-black text-white shadow-lg sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-3">
-                            <div className="text-3xl font-bold text-primary-500">ACE</div>
-                            <div className="text-sm text-gray-300">Admin Portal</div>
-                        </div>
-                        <nav className="flex items-center space-x-6">
-                            <div className="text-sm">
-                                <span className="text-gray-400">Admin:</span>
-                                <span className="font-semibold ml-2">Super Admin</span>
-                            </div>
-                            <Link href="/" className="flex items-center space-x-2 text-gray-300 hover:text-primary-500 transition-colors">
-                                <LogOut className="h-5 w-5" />
-                                <span>Logout</span>
-                            </Link>
-                        </nav>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
@@ -328,7 +309,22 @@ export default function AdminDashboardPage() {
                                         <div key={product.id} className={`border-2 rounded-lg p-6 transition-all ${!product.isActive ? 'border-red-200 bg-red-50' : 'border-gray-200 hover:border-primary-500'}`}>
                                             <div className="flex gap-4 mb-4">
                                                 <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                                    {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" /> : <div className="text-3xl">🔧</div>}
+                                                    {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" /> :
+                                                        <div className="w-full h-full p-2 bg-white flex items-center justify-center">
+                                                            <img
+                                                                src={
+                                                                    product.category === 'Mobile Cranes' ? '/assets/cat-mobile-crane.png' :
+                                                                        product.category === 'Forklift Trucks' ? '/assets/cat-forklift.png' :
+                                                                            product.category === 'Backhoe Loaders' ? '/assets/cat-backhoe.png' :
+                                                                                product.category === 'Hydraulic Parts' ? '/assets/part-hydraulic.png' :
+                                                                                    product.category === 'Filters' ? '/assets/part-filter.png' :
+                                                                                        '/assets/cat-mobile-crane.png'
+                                                                }
+                                                                alt={product.name}
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        </div>
+                                                    }
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-2">
@@ -371,7 +367,19 @@ export default function AdminDashboardPage() {
                                         <div key={machine.id} className={`border-2 rounded-lg p-6 ${!machine.isActive ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}>
                                             <div className="flex gap-4 mb-4">
                                                 <div className="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                                    {machine.images?.[0] ? <img src={machine.images[0]} alt={machine.name} className="w-full h-full object-cover" /> : <div className="text-5xl">🏗️</div>}
+                                                    {machine.images?.[0] ? <img src={machine.images[0]} alt={machine.name} className="w-full h-full object-cover" /> :
+                                                        <div className="w-full h-full p-2 bg-white flex items-center justify-center">
+                                                            <img
+                                                                src={
+                                                                    machine.name.includes('Forklift') ? '/assets/cat-forklift.png' :
+                                                                        machine.name.includes('Backhoe') ? '/assets/cat-backhoe.png' :
+                                                                            '/assets/cat-mobile-crane.png'
+                                                                }
+                                                                alt={machine.name}
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        </div>
+                                                    }
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-2">

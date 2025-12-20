@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Package, Settings, LogOut, ShoppingBag, Wrench, HeadphonesIcon, TrendingUp } from 'lucide-react'
 import { mockCustomerMachines, mockOrders, mockSuggestions, mockProducts, mockMachines } from '@/lib/mockData'
+import Header from '@/components/Header'
 
 export default function DashboardPage() {
     const [activeTab, setActiveTab] = useState('overview')
@@ -14,29 +15,7 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <div className="text-2xl font-bold text-primary-600">ACE</div>
-                            <div className="text-sm text-gray-600">Cranes & Equipment</div>
-                        </Link>
-                        <nav className="flex items-center space-x-6">
-                            <Link href="/products" className="hover:text-primary-600 transition-colors">
-                                Products
-                            </Link>
-                            <Link href="/cart" className="hover:text-primary-600 transition-colors">
-                                Cart
-                            </Link>
-                            <button className="flex items-center space-x-2 text-gray-700 hover:text-red-600 transition-colors">
-                                <LogOut className="h-5 w-5" />
-                                <span>Logout</span>
-                            </button>
-                        </nav>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Welcome Section */}
@@ -53,8 +32,8 @@ export default function DashboardPage() {
                                 <button
                                     onClick={() => setActiveTab('overview')}
                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'overview'
-                                            ? 'bg-primary-600 text-white'
-                                            : 'hover:bg-gray-100 text-gray-700'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'hover:bg-gray-100 text-gray-700'
                                         }`}
                                 >
                                     <Package className="h-5 w-5" />
@@ -63,8 +42,8 @@ export default function DashboardPage() {
                                 <button
                                     onClick={() => setActiveTab('orders')}
                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'orders'
-                                            ? 'bg-primary-600 text-white'
-                                            : 'hover:bg-gray-100 text-gray-700'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'hover:bg-gray-100 text-gray-700'
                                         }`}
                                 >
                                     <ShoppingBag className="h-5 w-5" />
@@ -73,8 +52,8 @@ export default function DashboardPage() {
                                 <button
                                     onClick={() => setActiveTab('machines')}
                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'machines'
-                                            ? 'bg-primary-600 text-white'
-                                            : 'hover:bg-gray-100 text-gray-700'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'hover:bg-gray-100 text-gray-700'
                                         }`}
                                 >
                                     <Wrench className="h-5 w-5" />
@@ -83,8 +62,8 @@ export default function DashboardPage() {
                                 <button
                                     onClick={() => setActiveTab('support')}
                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'support'
-                                            ? 'bg-primary-600 text-white'
-                                            : 'hover:bg-gray-100 text-gray-700'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'hover:bg-gray-100 text-gray-700'
                                         }`}
                                 >
                                     <HeadphonesIcon className="h-5 w-5" />
@@ -93,8 +72,8 @@ export default function DashboardPage() {
                                 <button
                                     onClick={() => setActiveTab('settings')}
                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'settings'
-                                            ? 'bg-primary-600 text-white'
-                                            : 'hover:bg-gray-100 text-gray-700'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'hover:bg-gray-100 text-gray-700'
                                         }`}
                                 >
                                     <Settings className="h-5 w-5" />
@@ -181,8 +160,19 @@ export default function DashboardPage() {
                                                     href={`/products/${product.id}`}
                                                     className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all group"
                                                 >
-                                                    <div className="aspect-square bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg flex items-center justify-center mb-3">
-                                                        <div className="text-4xl">🔧</div>
+                                                    <div className="aspect-square bg-white border border-gray-100 rounded-lg flex items-center justify-center mb-3 p-2 group-hover:bg-primary-50 transition-colors">
+                                                        <img
+                                                            src={
+                                                                product.category === 'Mobile Cranes' ? '/assets/cat-mobile-crane.png' :
+                                                                    product.category === 'Forklift Trucks' ? '/assets/cat-forklift.png' :
+                                                                        product.category === 'Backhoe Loaders' ? '/assets/cat-backhoe.png' :
+                                                                            product.category === 'Hydraulic Parts' ? '/assets/part-hydraulic.png' :
+                                                                                product.category === 'Filters' ? '/assets/part-filter.png' :
+                                                                                    '/assets/cat-mobile-crane.png' // Fallback
+                                                            }
+                                                            alt={product.name}
+                                                            className="w-full h-full object-contain"
+                                                        />
                                                     </div>
                                                     <h3 className="font-semibold mb-1 group-hover:text-primary-600 transition-colors line-clamp-2">
                                                         {product.name}
@@ -255,8 +245,16 @@ export default function DashboardPage() {
                                         return (
                                             <div key={custMachine.id} className="border border-gray-200 rounded-lg p-6">
                                                 <div className="flex gap-6">
-                                                    <div className="w-32 h-32 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                        <div className="text-5xl">🏗️</div>
+                                                    <div className="w-32 h-32 bg-white border border-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 p-2">
+                                                        <img
+                                                            src={
+                                                                machine.name.includes('Forklift') ? '/assets/cat-forklift.png' :
+                                                                    machine.name.includes('Backhoe') ? '/assets/cat-backhoe.png' :
+                                                                        '/assets/cat-mobile-crane.png'
+                                                            }
+                                                            alt={machine.name}
+                                                            className="w-full h-full object-contain"
+                                                        />
                                                     </div>
                                                     <div className="flex-1">
                                                         <h3 className="text-xl font-semibold mb-2">{machine.name}</h3>

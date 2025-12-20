@@ -4,8 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 // User Management
@@ -15,7 +15,7 @@ model User {
   password      String
   name          String
   phone         String?
-  role          Role      @default(CUSTOMER)
+  role          String      @default("CUSTOMER")
   emailVerified Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -31,11 +31,8 @@ model User {
   supportTickets SupportTicket[]
 }
 
-enum Role {
-  CUSTOMER
-  DEALER
-  ADMIN
-}
+// Role enum (mapped to String for SQLite)
+// CUSTOMER, DEALER, ADMIN
 
 model Address {
   id           String   @id @default(cuid())
@@ -60,16 +57,16 @@ model Product {
   id             String   @id @default(cuid())
   partNumber     String   @unique
   name           String
-  description    String   @db.Text
+  description    String
   category       String
   price          Float
-  images         String[] // Array of image URLs
-  specifications Json
+  images         String // Array of image URLs (JSON string)
+  specifications String // Technical specs (JSON string)
   isActive       Boolean  @default(true)
   
   // New fields for customized parts
   isCustomPart   Boolean  @default(false) // Is this a custom/specialized part?
-  customizationRequired String[] // Customization IDs this part requires
+  customizationRequired String // Customization IDs (JSON string)
   
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -115,20 +112,20 @@ model Order {
   userId            String
   user              User          @relation(fields: [userId], references: [id])
   
-  status            OrderStatus   @default(PENDING)
+  status            String        @default("PENDING")
   totalAmount       Float
-  paymentMethod     PaymentMethod
-  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String
+  paymentStatus     String        @default("PENDING")
   paymentId         String?
   
-  deliveryAddress   Json // Snapshot of address at order time
+  deliveryAddress   String // Snapshot of address at order time (JSON string)
   
-  deliveryPartner   DeliveryPartner?
+  deliveryPartner   String?
   trackingId        String?
   estimatedDelivery DateTime?
   actualDelivery    DateTime?
   
-  notes             String?       @db.Text
+  notes             String?
   
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -139,43 +136,17 @@ model Order {
   returns           Return[]
 }
 
-enum OrderStatus {
-  PENDING
-  PAYMENT_PENDING
-  PAYMENT_FAILED
-  ROUTING_L1
-  ROUTING_L2
-  ROUTING_L3
-  ROUTING_WAREHOUSE
-  CONFIRMED
-  PREPARING
-  READY_FOR_PICKUP
-  PICKED_UP
-  IN_TRANSIT
-  OUT_FOR_DELIVERY
-  DELIVERED
-  CANCELLED
-  RETURNED
-}
+// OrderStatus enum (mapped to String for SQLite)
+// PENDING, PAYMENT_PENDING, ..., RETURNED
 
-enum PaymentMethod {
-  ONLINE
-  COD
-  CREDIT
-}
+// PaymentMethod enum (mapped to String for SQLite)
+// ONLINE, COD, CREDIT
 
-enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
-  PARTIAL_REFUND
-}
+// PaymentStatus enum (mapped to String for SQLite)
+// PENDING, SUCCESS, FAILED, REFUNDED, PARTIAL_REFUND
 
-enum DeliveryPartner {
-  PORTER
-  DELHIVERY
-}
+// DeliveryPartner enum (mapped to String for SQLite)
+// PORTER, DELHIVERY
 
 model OrderItem {
   id          String          @id @default(cuid())
@@ -187,19 +158,15 @@ model OrderItem {
   quantity    Int
   price       Float // Price at order time
   
-  status      OrderItemStatus @default(PENDING)
+  status      String          @default("PENDING")
   fulfilledBy String? // Dealer/Warehouse ID
   
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 }
 
-enum OrderItemStatus {
-  PENDING
-  CONFIRMED
-  REJECTED
-  FULFILLED
-}
+// OrderItemStatus enum (mapped to String for SQLite)
+// PENDING, CONFIRMED, REJECTED, FULFILLED
 
 // Dealer Management
 model Dealer {
@@ -208,14 +175,14 @@ model Dealer {
   email           String      @unique
   password        String
   phone           String
-  level           DealerLevel
+  level           String
   
   address         String
   city            String
   state           String
   pincode         String
   
-  servicePincodes String[] // Pincodes this dealer serves
+  servicePincodes String // Pincodes this dealer serves (JSON string)
   
   isActive        Boolean     @default(true)
   responseSLA     Int         @default(120) // Minutes
@@ -232,12 +199,8 @@ model Dealer {
   manifests       Manifest[]
 }
 
-enum DealerLevel {
-  L1
-  L2
-  L3
-  WAREHOUSE
-}
+// DealerLevel enum (mapped to String for SQLite)
+// L1, L2, L3, WAREHOUSE
 
 model OrderRouting {
   id          String        @id @default(cuid())
@@ -246,12 +209,12 @@ model OrderRouting {
   dealerId    String
   dealer      Dealer        @relation(fields: [dealerId], references: [id])
   
-  level       DealerLevel
-  status      RoutingStatus @default(PENDING)
+  level       String
+  status      String        @default("PENDING")
   
   routedAt    DateTime      @default(now())
   respondedAt DateTime?
-  response    String?       @db.Text // Approval/rejection notes
+  response    String? // Approval/rejection notes
   
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -259,12 +222,8 @@ model OrderRouting {
   @@index([orderId, level])
 }
 
-enum RoutingStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  EXPIRED
-}
+// RoutingStatus enum (mapped to String for SQLite)
+// PENDING, APPROVED, REJECTED, EXPIRED
 
 // Manifest & Delivery
 model Manifest {
@@ -275,14 +234,14 @@ model Manifest {
   dealerId          String
   dealer            Dealer         @relation(fields: [dealerId], references: [id])
   
-  pickupAddress     Json
-  deliveryAddress   Json
-  items             Json // Item details
+  pickupAddress     String // (JSON string)
+  deliveryAddress   String // (JSON string)
+  items             String // Item details (JSON string)
   
-  deliveryPartner   DeliveryPartner
+  deliveryPartner   String
   trackingId        String?
   
-  status            ManifestStatus @default(CREATED)
+  status            String         @default("CREATED")
   
   scheduledPickup   DateTime?
   actualPickup      DateTime?
@@ -293,15 +252,8 @@ model Manifest {
   updatedAt         DateTime       @updatedAt
 }
 
-enum ManifestStatus {
-  CREATED
-  PICKUP_SCHEDULED
-  PICKED_UP
-  IN_TRANSIT
-  OUT_FOR_DELIVERY
-  DELIVERED
-  FAILED
-}
+// ManifestStatus enum (mapped to String for SQLite)
+// CREATED, ..., FAILED
 
 // Returns
 model Return {
@@ -309,45 +261,27 @@ model Return {
   orderId      String
   order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
-  reason       ReturnReason
-  description  String       @db.Text
-  photos       String[] // Photo URLs
+  reason       String
+  description  String
+  photos       String // Photo URLs (JSON string)
   
-  status       ReturnStatus @default(PENDING)
+  status       String @default("PENDING")
   
   approvedBy   String?
   approvedAt   DateTime?
   
   refundAmount Float?
-  refundStatus RefundStatus @default(PENDING)
+  refundStatus String @default("PENDING")
   
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 }
 
-enum ReturnReason {
-  DEFECTIVE
-  WRONG_ITEM
-  NOT_AS_DESCRIBED
-  CHANGED_MIND
-  OTHER
-}
+// ReturnReason enum (mapped to String for SQLite)
 
-enum ReturnStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  PICKED_UP
-  RECEIVED
-  COMPLETED
-}
+// ReturnStatus enum (mapped to String for SQLite)
 
-enum RefundStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-}
+// RefundStatus enum (mapped to String for SQLite)
 
 // Machine & Customization Management
 model Machine {
@@ -358,9 +292,9 @@ model Machine {
   model             String              // e.g., "FX 14"
   manufacturer      String              @default("ACE")
   
-  description       String              @db.Text
-  specifications    Json                // Technical specs
-  images            String[]            // Machine images
+  description       String
+  specifications    String                // Technical specs
+  images            String                // Machine images
   
   isCustomizable    Boolean             @default(false)
   isActive          Boolean             @default(true)
@@ -384,10 +318,10 @@ model CustomerMachine {
   purchaseDate          DateTime?
   
   hasCustomization      Boolean               @default(false)
-  customizationDetails  Json?                 // Specific customizations for this machine
+  customizationDetails  String?                 // Specific customizations (JSON string)
   
   nickname              String?               // Customer's nickname for the machine
-  notes                 String?               @db.Text
+  notes                 String?
   
   isActive              Boolean               @default(true)
   
@@ -407,11 +341,11 @@ model MachineCustomization {
   machine           Machine  @relation(fields: [machineId], references: [id])
   
   name              String   // e.g., "Extended Boom"
-  description       String   @db.Text
+  description       String
   customizationType String   // e.g., "Structural", "Hydraulic", "Electrical"
   
-  affectedParts     Json     // Parts that are different due to this customization
-  additionalParts   Json     // Additional parts needed for this customization
+  affectedParts     String     // (JSON string)
+  additionalParts   String     // (JSON string)
   
   isActive          Boolean  @default(true)
   
@@ -429,7 +363,7 @@ model CustomerMachineCustomization {
   customization           MachineCustomization @relation(fields: [customizationId], references: [id])
   
   installedDate           DateTime?
-  notes                   String?              @db.Text
+  notes                   String?
   
   createdAt               DateTime             @default(now())
   
@@ -446,10 +380,10 @@ model PartCompatibility {
   isStandardPart    Boolean  @default(true)  // Standard part for this machine
   isCustomPart      Boolean  @default(false) // Part for customized machines
   
-  customizationIds  String[] // IDs of customizations this part is compatible with
+  customizationIds  String // (JSON string)
   
-  compatibilityNotes String? @db.Text
-  installationGuide  String? @db.Text
+  compatibilityNotes String?
+  installationGuide  String?
   
   priority          Int      @default(0) // Higher priority = more commonly needed
   
@@ -470,22 +404,22 @@ model SupportTicket {
   customerMachineId   String?
   customerMachine     CustomerMachine?    @relation(fields: [customerMachineId], references: [id])
   
-  type                SupportTicketType   @default(PART_INQUIRY)
-  status              SupportTicketStatus @default(OPEN)
-  priority            SupportPriority     @default(MEDIUM)
+  type                String   @default("PART_INQUIRY")
+  status              String @default("OPEN")
+  priority            String     @default("MEDIUM")
   
   subject             String
-  description         String              @db.Text
+  description         String
   
   assignedTo          String?             // Support agent ID
   
   whatsappNumber      String?
   whatsappChatId      String?
   
-  confirmedParts      Json?               // Parts confirmed by support team
+  confirmedParts      String?               // (JSON string)
   sharedCartLink      String?             // Link to add parts to cart
   
-  resolution          String?             @db.Text
+  resolution          String?
   resolvedAt          DateTime?
   
   createdAt           DateTime            @default(now())
@@ -497,29 +431,11 @@ model SupportTicket {
   @@index([status])
 }
 
-enum SupportTicketType {
-  PART_INQUIRY
-  CUSTOMIZATION_QUERY
-  TECHNICAL_SUPPORT
-  ORDER_ISSUE
-  GENERAL
-}
+// SupportTicketType enum (mapped to String for SQLite)
 
-enum SupportTicketStatus {
-  OPEN
-  IN_PROGRESS
-  WAITING_CUSTOMER
-  PARTS_CONFIRMED
-  RESOLVED
-  CLOSED
-}
+// SupportTicketStatus enum (mapped to String for SQLite)
 
-enum SupportPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
+// SupportPriority enum (mapped to String for SQLite)
 
 model SupportMessage {
   id              String        @id @default(cuid())
@@ -529,8 +445,8 @@ model SupportMessage {
   senderId        String        // User ID or Support Agent ID
   senderType      String        // "CUSTOMER" or "SUPPORT"
   
-  message         String        @db.Text
-  attachments     String[]      // URLs to attachments
+  message         String
+  attachments     String      // URLs to attachments (JSON string)
   
   isWhatsApp      Boolean       @default(false)
   whatsappMsgId   String?
@@ -547,7 +463,7 @@ model PartSuggestion {
   productId         String
   machineId         String?
   
-  suggestionType    SuggestionType
+  suggestionType    String
   reason            String   // Why this part is suggested
   
   relevanceScore    Float    @default(0.0) // 0-100
@@ -562,14 +478,7 @@ model PartSuggestion {
   @@index([productId])
 }
 
-enum SuggestionType {
-  COMPATIBLE_PART           // Compatible with customer's machine
-  FREQUENTLY_BOUGHT         // Frequently bought together
-  CUSTOMIZATION_REQUIRED    // Required for customization
-  MAINTENANCE_DUE           // Based on usage/time
-  SIMILAR_MACHINE_USERS     // What similar machine owners buy
-  SEASONAL                  // Seasonal recommendations
-}
+// SuggestionType enum (mapped to String for SQLite)
 
 // Comprehensive Repository
 model MachineRepository {
@@ -584,7 +493,7 @@ model MachineRepository {
   lastSyncedAt      DateTime @default(now())
   
   // Metadata
-  metadata          Json
+  metadata          String // (JSON string)
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

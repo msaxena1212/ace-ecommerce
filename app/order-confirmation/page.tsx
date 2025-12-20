@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Check, Package, Truck } from 'lucide-react'
+import Header from '@/components/Header'
 
 export default function OrderConfirmationPage() {
     const orderNumber = 'ORD-2024-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0')
@@ -14,17 +15,7 @@ export default function OrderConfirmationPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <Link href="/" className="flex items-center space-x-2">
-                            <div className="text-2xl font-bold text-primary-600">ACE</div>
-                            <div className="text-sm text-gray-600">Cranes & Equipment</div>
-                        </Link>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 {/* Success Icon */}
