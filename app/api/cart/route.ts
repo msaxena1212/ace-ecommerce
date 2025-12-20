@@ -1,39 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { verifyToken } from "@/lib/auth";
+import {
+    getCart,
+    addToCart,
+    removeFromCart,
+    updateCartQuantity,
+    clearCart,
+} from "@/lib/cart";
 
 /**
  * GET /api/cart
- * Get cart items for current user
+ * Get current user's cart
  */
 export async function GET(request: NextRequest) {
     try {
-        // TODO: Get user from session
-        // const session = await getServerSession()
-        // const userId = session?.user?.id
+        // Get token from cookie
+        const token = request.cookies.get("token")?.value;
 
-        const userId = 'user-001' // Mock for now
+        if (!token) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
 
-        const cart = await prisma.cart.findUnique({
-            where: { userId },
-            include: {
-                items: {
-                    include: {
-                        product: true
-                    }
-                }
-            }
-        })
+        // Verify token
+        const payload = await verifyToken(token);
+        if (!payload) {
+            return NextResponse.json(
+                { success: false, error: "Invalid token" },
+                { status: 401 }
+            );
+        }
 
-        return NextResponse.json({
-            success: true,
-            data: cart || { items: [] }
-        })
+        // Get cart
+        const result = await getCart(payload.userId);
+        return NextResponse.json(result);
     } catch (error) {
-        console.error('Error fetching cart:', error)
+        console.error("Get cart error:", error);
         return NextResponse.json(
-            { success: false, error: 'Failed to fetch cart' },
+            { success: false, error: "Failed to get cart" },
             { status: 500 }
-        )
+        );
     }
 }
 
@@ -43,100 +51,152 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json()
-        const { productId, quantity } = body
+        // Get token from cookie
+        const token = request.cookies.get("token")?.value;
 
-        // TODO: Get user from session
-        const userId = 'user-001' // Mock for now
-
-        // Get or create cart
-        let cart = await prisma.cart.findUnique({
-            where: { userId }
-        })
-
-        if (!cart) {
-            cart = await prisma.cart.create({
-                data: { userId }
-            })
+        if (!token) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized" },
+                { status: 401 }
+            );
         }
 
-        // Check if item already in cart
-        const existingItem = await prisma.cartItem.findFirst({
-            where: {
-                cartId: cart.id,
-                productId
-            }
-        })
-
-        if (existingItem) {
-            // Update quantity
-            await prisma.cartItem.update({
-                where: { id: existingItem.id },
-                data: {
-                    quantity: existingItem.quantity + quantity
-                }
-            })
-        } else {
-            // Add new item
-            await prisma.cartItem.create({
-                data: {
-                    cartId: cart.id,
-                    productId,
-                    quantity
-                }
-            })
+        // Verify token
+        const payload = await verifyToken(token);
+        if (!payload) {
+            return NextResponse.json(
+                { success: false, error: "Invalid token" },
+                { status: 401 }
+            );
         }
 
-        // Return updated cart
-        const updatedCart = await prisma.cart.findUnique({
-            where: { id: cart.id },
-            include: {
-                items: {
-                    include: {
-                        product: true
-                    }
-                }
-            }
-        })
+        const body = await request.json();
+        const { productId, quantity = 1 } = body;
 
-        return NextResponse.json({
-            success: true,
-            data: updatedCart
-        })
+        if (!productId) {
+            return NextResponse.json(
+                { success: false, error: "Product ID is required" },
+                { status: 400 }
+            );
+        }
+
+        // Add to cart
+        const result = await addToCart(payload.userId, productId, quantity);
+        return NextResponse.json(result);
     } catch (error) {
-        console.error('Error adding to cart:', error)
+        console.error("Add to cart error:", error);
         return NextResponse.json(
-            { success: false, error: 'Failed to add to cart' },
+            { success: false, error: "Failed to add to cart" },
             { status: 500 }
-        )
+        );
+    }
+}
+
+/**
+ * PUT /api/cart
+ * Update cart item quantity
+ */
+export async function PUT(request: NextRequest) {
+    try {
+        // Get token from cookie
+        const token = request.cookies.get("token")?.value;
+
+        if (!token) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        // Verify token
+        const payload = await verifyToken(token);
+        if (!payload) {
+            return NextResponse.json(
+                { success: false, error: "Invalid token" },
+                { status: 401 }
+            );
+        }
+
+        const body = await request.json();
+        const { productId, quantity } = body;
+
+        if (!productId || quantity === undefined) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Product ID and quantity are required",
+                },
+                { status: 400 }
+            );
+        }
+
+        // Update quantity
+        const result = await updateCartQuantity(
+            payload.userId,
+            productId,
+            quantity
+        );
+        return NextResponse.json(result);
+    } catch (error) {
+        console.error("Update cart error:", error);
+        return NextResponse.json(
+            { success: false, error: "Failed to update cart" },
+            { status: 500 }
+        );
     }
 }
 
 /**
  * DELETE /api/cart
- * Clear entire cart
+ * Remove item from cart or clear entire cart
  */
 export async function DELETE(request: NextRequest) {
     try {
-        const userId = 'user-001' // Mock for now
+        // Get token from cookie
+        const token = request.cookies.get("token")?.value;
 
-        await prisma.cartItem.deleteMany({
-            where: {
-                cart: {
-                    userId
-                }
-            }
-        })
+        if (!token) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
 
-        return NextResponse.json({
-            success: true,
-            message: 'Cart cleared'
-        })
+        // Verify token
+        const payload = await verifyToken(token);
+        if (!payload) {
+            return NextResponse.json(
+                { success: false, error: "Invalid token" },
+                { status: 401 }
+            );
+        }
+
+        const { searchParams } = new URL(request.url);
+        const productId = searchParams.get("productId");
+        const clearAll = searchParams.get("clearAll") === "true";
+
+        if (clearAll) {
+            // Clear entire cart
+            const result = await clearCart(payload.userId);
+            return NextResponse.json(result);
+        } else if (productId) {
+            // Remove specific item
+            const result = await removeFromCart(payload.userId, productId);
+            return NextResponse.json(result);
+        } else {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Product ID or clearAll parameter is required",
+                },
+                { status: 400 }
+            );
+        }
     } catch (error) {
-        console.error('Error clearing cart:', error)
+        console.error("Delete cart error:", error);
         return NextResponse.json(
-            { success: false, error: 'Failed to clear cart' },
+            { success: false, error: "Failed to delete from cart" },
             { status: 500 }
-        )
+        );
     }
 }
