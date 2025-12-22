@@ -1,113 +1,126 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
-import { createOrder, getUserOrders, getOrder } from "@/lib/checkout";
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { prisma } from '@/lib/prisma'
+import { generateOrderNumber } from '@/lib/utils'
+import { routeOrder } from '@/lib/services/orderRouting'
+import { z } from 'zod'
 
-/**
- * POST /api/checkout
- * Create order from cart
- */
+const checkoutSchema = z.object({
+    deliveryAddressId: z.string(),
+    paymentMethod: z.enum(['ONLINE', 'COD', 'CREDIT']),
+})
+
 export async function POST(request: NextRequest) {
     try {
-        // Get token from cookie
-        const token = request.cookies.get("token")?.value;
+        const session = await getServerSession(authOptions)
 
-        if (!token) {
+        if (!session?.user) {
             return NextResponse.json(
-                { success: false, error: "Unauthorized" },
+                { error: 'Unauthorized' },
                 { status: 401 }
-            );
+            )
         }
 
-        // Verify token
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json(
-                { success: false, error: "Invalid token" },
-                { status: 401 }
-            );
-        }
+        const body = await request.json()
+        const validatedData = checkoutSchema.parse(body)
 
-        const body = await request.json();
-        const {
-            paymentMethod,
-            addressId,
-            shippingAddress,
-        } = body;
+        // Get user's cart items
+        const cartItems = await prisma.cartItem.findMany({
+            where: { userId: session.user.id },
+            include: { product: true },
+        })
 
-        // Validate payment method
-        if (!paymentMethod) {
+        if (cartItems.length === 0) {
             return NextResponse.json(
-                { success: false, error: "Payment method is required" },
+                { error: 'Cart is empty' },
                 { status: 400 }
-            );
+            )
         }
+
+        // Get delivery address
+        const address = await prisma.address.findUnique({
+            where: { id: validatedData.deliveryAddressId },
+        })
+
+        if (!address || address.userId !== session.user.id) {
+            return NextResponse.json(
+                { error: 'Invalid delivery address' },
+                { status: 400 }
+            )
+        }
+
+        // Calculate total amount
+        const totalAmount = cartItems.reduce(
+            (sum, item) => sum + item.product.price * item.quantity,
+            0
+        )
 
         // Create order
-        const result = await createOrder(
-            payload.userId,
-            paymentMethod,
-            addressId,
-            shippingAddress
-        );
+        const order = await prisma.order.create({
+            data: {
+                orderNumber: generateOrderNumber(),
+                userId: session.user.id,
+                status: 'PENDING',
+                totalAmount,
+                paymentMethod: validatedData.paymentMethod,
+                paymentStatus: validatedData.paymentMethod === 'COD' ? 'PENDING' : 'PENDING',
+                deliveryAddress: {
+                    name: address.name,
+                    phone: address.phone,
+                    addressLine1: address.addressLine1,
+                    addressLine2: address.addressLine2,
+                    city: address.city,
+                    state: address.state,
+                    pincode: address.pincode,
+                },
+                items: {
+                    create: cartItems.map(item => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.product.price,
+                        status: 'PENDING',
+                    })),
+                },
+            },
+            include: {
+                items: {
+                    include: {
+                        product: true,
+                    },
+                },
+            },
+        })
 
-        if (!result.success) {
-            return NextResponse.json(result, { status: 400 });
-        }
+        // Clear cart
+        await prisma.cartItem.deleteMany({
+            where: { userId: session.user.id },
+        })
 
-        return NextResponse.json(result, { status: 201 });
+        // Route order to dealers
+        await routeOrder(order.id, address.pincode)
+
+        return NextResponse.json({
+            message: 'Order placed successfully',
+            order: {
+                id: order.id,
+                orderNumber: order.orderNumber,
+                totalAmount: order.totalAmount,
+                status: order.status,
+            },
+        })
     } catch (error) {
-        console.error("Checkout error:", error);
-        return NextResponse.json(
-            { success: false, error: "Checkout failed" },
-            { status: 500 }
-        );
-    }
-}
-
-/**
- * GET /api/checkout/orders
- * Get all orders for current user
- */
-export async function GET(request: NextRequest) {
-    try {
-        // Get token from cookie
-        const token = request.cookies.get("token")?.value;
-
-        if (!token) {
+        if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { success: false, error: "Unauthorized" },
-                { status: 401 }
-            );
+                { error: 'Invalid input', details: error.errors },
+                { status: 400 }
+            )
         }
 
-        // Verify token
-        const payload = await verifyToken(token);
-        if (!payload) {
-            return NextResponse.json(
-                { success: false, error: "Invalid token" },
-                { status: 401 }
-            );
-        }
-
-        // Get query parameters
-        const { searchParams } = new URL(request.url);
-        const limit = parseInt(searchParams.get("limit") || "50");
-        const offset = parseInt(searchParams.get("offset") || "0");
-        const orderId = searchParams.get("orderId");
-
-        // Get specific order or all orders
-        if (orderId) {
-            const result = await getOrder(orderId, payload.userId);
-            return NextResponse.json(result);
-        } else {
-            const result = await getUserOrders(payload.userId, limit, offset);
-            return NextResponse.json(result);
-        }
-    } catch (error) {
-        console.error("Get orders error:", error);
+        console.error('Checkout error:', error)
         return NextResponse.json(
-            { success: false, error: "Failed to retrieve orders" },
+            { error: 'Internal server error' },
             { status: 500 }
-        );
+        )
     }
 }
