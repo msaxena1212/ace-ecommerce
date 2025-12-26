@@ -4,7 +4,6 @@ const nextConfig = {
         domains: ['localhost', 'res.cloudinary.com'],
     },
     experimental: {
-        serverActions: true,
     },
 }
 

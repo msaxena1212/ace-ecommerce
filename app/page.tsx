@@ -408,45 +408,7 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="bg-black text-white py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                        <div>
-                            <img src="/assets/ace-logo.png" alt="ACE Cranes" className="h-8 w-auto mb-4" />
-                            <p className="text-gray-400">
-                                Premium construction equipment parts with intelligent routing and same-day delivery.
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="font-bold mb-4">Quick Links</h4>
-                            <ul className="space-y-2 text-gray-400">
-                                <li><Link href="/products" className="hover:text-primary-500">Products</Link></li>
-                                <li><Link href="/dashboard" className="hover:text-primary-500">Dashboard</Link></li>
-                                <li><Link href="/routing-demo" className="hover:text-primary-500">Order Routing</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold mb-4">For Dealers</h4>
-                            <ul className="space-y-2 text-gray-400">
-                                <li><Link href="/dealer/login" className="hover:text-primary-500">Dealer Login</Link></li>
-                                <li><Link href="/dealer/dashboard" className="hover:text-primary-500">Dealer Dashboard</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold mb-4">Support</h4>
-                            <ul className="space-y-2 text-gray-400">
-                                <li>Phone: 1800-1800-004</li>
-                                <li>Email: support@ace-cranes.com</li>
-                                <li>Hours: 9 AM - 6 PM</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-                        <p>&copy; 2024 ACE Cranes & Equipment. All rights reserved.</p>
-                    </div>
-                </div>
-            </footer>
+
         </div>
     )
 }
