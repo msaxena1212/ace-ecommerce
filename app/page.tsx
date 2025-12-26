@@ -127,7 +127,7 @@ export default function HomePage() {
             </section>
 
             {/* Quick Track Your Orders */}
-            <section className="bg-gray-900 border-t border-white/10 py-8">
+            {/* <section className="bg-gray-900 border-t border-white/10 py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
@@ -159,7 +159,7 @@ export default function HomePage() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section> */}
             <section className="bg-primary-500 py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col lg:flex-row items-center gap-12">
